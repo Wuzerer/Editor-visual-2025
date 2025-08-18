@@ -1,0 +1,103 @@
+¡Excelente idea! Tienes razón, vamos a revisar cómo funciona el panel de "choice" que ya funciona correctamente y replicar esa funcionalidad. Primero voy a buscar cómo está implementado el panel de choices:
+
+Ran tool
+Perfecto! Veo que el sistema de choice usa un patrón específico. Voy a revisar cómo funciona exactamente:
+
+Read file: editor_modules/visual_editor_screen.rpy
+Ahora voy a revisar las funciones que manejan la activación del input:
+
+Ran tool
+Read file: editor_modules/visual_editor_screen.rpy
+¡Perfecto! Ahora entiendo cómo funciona el sistema de choice. Voy a replicar exactamente el mismo patrón para la ventana modal de crear escenas. El sistema usa:
+
+1. **Variables de control** (`choice_text_active`)
+2. **Botón para activar** el input
+3. **Botón para aceptar** el texto
+4. **Input condicional** que solo aparece cuando está activo
+
+Voy a implementar esto:
+
+Ahora voy a agregar las funciones que manejan la activación y aceptación del nombre, siguiendo exactamente el patrón de choice:
+
+Ahora voy a actualizar la función `create_scene_from_modal` para que funcione mejor con el nuevo sistema:
+
+Ahora voy a actualizar el botón cancelar para que también limpie las variables del nuevo sistema:
+
+Perfecto! Ahora he implementado exactamente el mismo patrón que usa el sistema de choice. Vamos a verificar que todo esté correcto:
+
+Read file: editor_modules/visual_editor_screen.rpy
+¡Excelente! Ahora he implementado exactamente el mismo patrón que usa el sistema de choice. 
+
+## ✅ **Solución implementada siguiendo el patrón de choice:**
+
+### 🎯 **Características del nuevo sistema:**
+
+1. **Variable de control**: `scene_name_active` (igual que `choice_text_active`)
+2. **Input condicional**: Solo aparece cuando `scene_name_active` es `True`
+3. **Botón "✏️ Editar Nombre"**: Activa el modo de edición
+4. **Botón "✅ Aceptar"**: Guarda el nombre y desactiva la edición
+5. **Texto de placeholder**: Muestra el nombre actual o instrucciones
+
+### 🔧 **Funciones implementadas:**
+
+- `activate_scene_name_edit()`: Activa el campo de edición
+- `accept_scene_name()`: Acepta y guarda el nombre
+- `create_scene_from_modal()`: Mejorada para limpiar todas las variables
+
+### 🎮 **Cómo funciona ahora:**
+
+1. **Abre la ventana modal** → Se muestra el texto placeholder
+2. **Haz clic en "✏️ Editar Nombre"** → Se activa el input
+3. **Escribe el nombre** → El input está activo y funcional
+4. **Haz clic en "✅ Aceptar"** → Se guarda el nombre
+5. **Haz clic en "✅ Crear Escena"** → Se crea la escena
+
+### 🛡️ **Ventajas de este enfoque:**
+
+- **No más reinicios**: Usa el mismo patrón probado del sistema choice
+- **Input confiable**: Se activa solo cuando es necesario
+- **Feedback visual**: El usuario sabe exactamente cuándo puede escribir
+- **Consistencia**: Misma experiencia que otros elementos del editor
+
+Ahora el sistema debería funcionar perfectamente sin reiniciar el juego, ya que usa exactamente el mismo patrón que el sistema de choice que ya funciona correctamente.
+
+----------------------------------------------------------------------
+
+Tienes razón, vamos a revisar otros paneles que funcionan correctamente para ver cómo manejan la creación de elementos. Voy a buscar paneles similares que creen contenido:
+
+Ran tool
+Perfecto! Veo que hay varias funciones que funcionan correctamente. Vamos a revisar cómo funciona `add_choice_to_scene()` que es similar a lo que estamos haciendo:
+
+Read file: editor_modules/visual_editor_screen.rpy
+Ahora vamos a revisar `add_dialogue_to_scene()` que también funciona:
+
+Read file: editor_modules/visual_editor_screen.rpy
+Ahora veo el patrón! Las funciones que funcionan correctamente usan un enfoque diferente. Vamos a revisar también `add_label_to_scene()`:
+
+Read file: editor_modules/visual_editor_screen.rpy
+¡Perfecto! Ahora veo el patrón común. Todas las funciones que funcionan correctamente:
+
+## 🔍 **Patrón común de las funciones que funcionan:**
+
+1. **Obtienen datos de la pantalla** usando `renpy.get_screen_variable()`
+2. **Verifican si `scenes` es None** y lo inicializan como lista vacía
+3. **Crean un `scene_data`** con la información
+4. **Agregan a la lista `scenes`**
+5. **Actualizan `current_scenes`** con `renpy.set_screen_variable()`
+6. **Limpian los campos** de entrada
+7. **Llaman a `simple_viewport_refresh()`** para actualizar la vista
+8. **Muestran notificación** de éxito
+
+## 🎯 **El problema con nuestra función:**
+
+Nuestra función `add_scene_to_modal()` está intentando acceder a variables de una pantalla modal que puede estar ocultándose. Las funciones que funcionan acceden a variables de la pantalla principal (`visual_editor`).
+
+## 💡 **Solución:**
+
+Necesitamos cambiar el enfoque para que funcione como las otras funciones. En lugar de manejar todo en la modal, deberíamos:
+
+1. **Usar variables globales** o de la pantalla principal
+2. **Seguir el mismo patrón** que las otras funciones
+3. **No depender de variables de pantalla modal**
+
+¿Quieres que implemente la solución siguiendo este patrón que funciona?
