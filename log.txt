@@ -1,10 +1,10 @@
-2025-08-19 20:29:06 UTC
+2025-08-19 20:48:42 UTC
 Windows-11-10.0.26100-SP0
 Ren'Py 8.4.1.25072401
 
-Early init took 44 ms
-Loading error handling took 24 ms
-Loading script took 690 ms
+Early init took 42 ms
+Loading error handling took 22 ms
+Loading script took 613 ms
 Loading save slot metadata took 23 ms
 Loading persistent took 0 ms
 ⚠️ Layout no disponible desde layout_controller.rpy, creando fallback básico
@@ -59,7 +59,7 @@ Loading persistent took 0 ms
 📝 Contenido del archivo RPY:
 # current_scenes.rpy
 # Archivo generado automáticamente por el Editor Visual
-# Generado el: 2025-08-19 17:29:06
+# Generado el: 2025-08-19 17:48:42
 
 # Escena 1: Diálogo
 label scene_1_dialogue:
@@ -77,15 +77,15 @@ label scene_3_background:
     return
 
 ✅ Editor Operations inicializado con sistema RPY
-Running init code took 59 ms
-Loading analysis data took 5 ms
-Analyze and compile ATL took 2 ms
+Running init code took 57 ms
+Loading analysis data took 9 ms
+Analyze and compile ATL took 1 ms
 Reloading save slot metadata took 3 ms
 Backing up script files to 'C:\\Users\\sebas\\AppData\\Roaming/RenPy/backups\\Editor-visual-2025':
-Dump and make backups took 44 ms
+Dump and make backups took 43 ms
 Cleaning cache took 0 ms
-Making clean stores took 0 ms
-Initial gc took 42 ms
+Making clean stores took 1 ms
+Initial gc took 54 ms
 DPI scale factor: 1.250000
 nvdrs: Loaded, about to disable thread optimizations.
 nvdrs: b"Couldn't load nvlib." (can be ignored)
@@ -93,12 +93,12 @@ Creating interface object took 3 ms
 Init translation took 0 ms
 Cleaning stores took 0 ms
 Load screen analysis took 0 ms
-Analyze screens took 18 ms
-Save screen analysis took 22 ms
-Save pyanalysis took 0 ms
-Save bytecode took 28 ms
-Running _start took 0 ms
-Interface start took 459 ms
+Analyze screens took 22 ms
+Save screen analysis took 28 ms
+Save pyanalysis took 7 ms
+Save bytecode took 29 ms
+Running _start took 1 ms
+Interface start took 509 ms
 
 Initializing gl2 renderer:
 primary display bounds: (0, 0, 1920, 1200)
@@ -112,91 +112,133 @@ Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
 Maximum texture size: 4096x4096
 Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
 Maximum texture size: 4096x4096
+🔍 Debug: Abriendo modal de cargar proyecto...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: 0 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Abriendo modal de guardar proyecto...
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Abriendo modal de cargar proyecto...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: 0 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Abriendo modal de guardar proyecto...
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Guardando proyecto: Mi Proyecto
+🔍 Debug: Carpeta del proyecto creada: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\projects\mi_proyecto
+🔍 Debug: Escena copiada: rfds.rpy
+🔍 Debug: Proyecto guardado exitosamente: Mi Proyecto
 🔍 Debug: Abriendo organizador de escenas...
 🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: 0 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 0
-🔍 Debug: Escenas guardadas en organizador
-🔍 Debug: Modal de organizador mostrada
-🔍 Debug: Activando edición del nombre...
-🔍 Debug: Campo activado, scene_name_active = True (pantalla y global)
-🔍 Debug: Activación completada exitosamente
-🔍 Debug: Error sincronizando new_scene_name desde pantalla: Screen  is not showing.
-🔍 Debug: Error sincronizando scene_name_active desde pantalla: 'bool' object is not subscriptable
-🔍 Debug: Aceptando nombre de escena...
-🔍 Debug: Error obteniendo variable de pantalla: Screen  is not showing.
-🔍 Debug: Error en fallback 2: 'bool' object is not subscriptable
-🔍 Debug: No se pudo obtener nombre de escena, devolviendo vacío
-🔍 Debug: Nombre actual obtenido de forma segura: ''
-🔍 Debug: Campo desactivado, scene_name_active = False
-🔍 Debug: Nombre vacío detectado
-🔍 Debug: Campo limpiado exitosamente
-🔍 Debug: Activando edición del nombre...
-🔍 Debug: Campo activado, scene_name_active = True (pantalla y global)
-🔍 Debug: Activación completada exitosamente
-🔍 Debug: Error sincronizando new_scene_name desde pantalla: Screen  is not showing.
-🔍 Debug: Error sincronizando scene_name_active desde pantalla: 'bool' object is not subscriptable
-🔍 Debug: Aceptando nombre de escena...
-🔍 Debug: Usando variable global: 'jhg'
-🔍 Debug: Nombre actual obtenido de forma segura: 'jhg'
-🔍 Debug: Campo desactivado, scene_name_active = False
-🔍 Debug: Nombre guardado exitosamente
-🔍 Debug: Error sincronizando new_scene_name desde pantalla: Screen  is not showing.
-🔍 Debug: Error sincronizando scene_name_active desde pantalla: 'bool' object is not subscriptable
-🔍 Debug: new_scene_name sincronizado desde global: 'jhg'
-🔍 Debug: Iniciando add_scene_to_modal()
-🔍 Debug: Modal está lista, obteniendo nombre...
-🔍 Debug: Usando variable global: 'jhg'
-🔍 Debug: Nombre obtenido: 'jhg' (tipo: <class 'str'>)
-🔍 Debug: Iniciando validación...
-🔍 Debug: Validando nombre: 'jhg' (tipo: <class 'str'>)
-🔍 Debug: Nombre válido: 'jhg'
-🔍 Debug: Resultado validación: True - Nombre válido
-🔍 Debug: Creando nueva escena en carpeta scenes/...
-🔍 Debug: Escena creada exitosamente: jhg.rpy
-🔍 Debug: Ruta del archivo: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\scenes\jhg.rpy
-🔍 Debug: Campo limpiado exitosamente
-🔍 Debug: Abriendo organizador de escenas...
-🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: Escena cargada: jhg (2 líneas)
+🔍 Debug: Escena cargada: rfds (2 líneas)
 🔍 Debug: 1 escenas cargadas desde carpeta scenes/
 🔍 Debug: Escenas cargadas desde archivo: 1
 🔍 Debug: Escenas guardadas en organizador
 🔍 Debug: Modal de organizador mostrada
-🔍 Debug: Mostrando modal de confirmación para: jhg
-🔍 Debug: Ejecutando eliminación de escena: jhg
-🔍 Debug: Eliminando archivo: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\scenes\jhg.rpy
-🔍 Debug: Archivo .rpy eliminado: jhg.rpy
-🔍 Debug: Escena eliminada de la lista: jhg
-🔍 Debug: Escena eliminada completamente: jhg
+Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
+Maximum texture size: 4096x4096
+Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
+Maximum texture size: 4096x4096
+🔍 Debug: Abriendo modal de cargar proyecto...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: 1 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Cargando proyecto: mi_proyecto
+🔍 Debug: Escena eliminada: rfds.rpy
+🔍 Debug: Escena copiada: rfds.rpy
+🔍 Debug: Cargando escenas para organizador...
+🔍 Debug: Escena cargada: rfds (2 líneas)
+🔍 Debug: 1 escenas cargadas desde carpeta scenes/
+🔍 Debug: Escenas cargadas desde archivo: 1
+🔍 Debug: Escenas guardadas en organizador
+🔍 Debug: Proyecto cargado exitosamente: Mi Proyecto
 🔍 Debug: Abriendo organizador de escenas...
 🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: 0 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 0
+🔍 Debug: Escena cargada: rfds (2 líneas)
+🔍 Debug: 1 escenas cargadas desde carpeta scenes/
+🔍 Debug: Escenas cargadas desde archivo: 1
 🔍 Debug: Escenas guardadas en organizador
 🔍 Debug: Modal de organizador mostrada
-🔍 Debug: Campo limpiado exitosamente
 🔍 Debug: Abriendo organizador de escenas...
 🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: 0 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 0
+🔍 Debug: Escena cargada: rfds (2 líneas)
+🔍 Debug: 1 escenas cargadas desde carpeta scenes/
+🔍 Debug: Escenas cargadas desde archivo: 1
 🔍 Debug: Escenas guardadas en organizador
 🔍 Debug: Modal de organizador mostrada
-🔍 Debug: Campo limpiado exitosamente
-🔍 Debug: Campo limpiado exitosamente
+🔍 Debug: Editando escena en Vista Previa: rfds
+🔍 Debug: Cargando escena para Vista Previa: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\scenes\rfds.rpy
+🔍 Debug: Cargando escena para vista previa: rfds
+🔍 Debug: Variables de pantalla sincronizadas: rfds
+🔍 Debug: Escena cargada en vista previa: rfds (2 líneas)
+🔍 Debug: Archivo: rfds.rpy
+🔍 Debug: Contenido de escenas convertido: 2 elementos
+🔍 Debug: Escena 1: {'type': 'command', 'command': 'label rfds:'}
+🔍 Debug: Escena 2: {'type': 'command', 'command': 'return'}
+🔍 Debug: Variables globales - current_scene_name: rfds
+🔍 Debug: Variables globales - current_scenes: 2 líneas
+🔍 Debug: Error obteniendo variables de pantalla: list index out of range
 🔍 Debug: Abriendo organizador de escenas...
 🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: 0 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 0
+🔍 Debug: Escena cargada: rfds (2 líneas)
+🔍 Debug: 1 escenas cargadas desde carpeta scenes/
+🔍 Debug: Escenas cargadas desde archivo: 1
 🔍 Debug: Escenas guardadas en organizador
 🔍 Debug: Modal de organizador mostrada
+🔍 Debug: Editando escena en Vista Previa: rfds
+🔍 Debug: Cargando escena para Vista Previa: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\scenes\rfds.rpy
+🔍 Debug: Cargando escena para vista previa: rfds
+🔍 Debug: Variables de pantalla sincronizadas: rfds
+🔍 Debug: Escena cargada en vista previa: rfds (2 líneas)
+🔍 Debug: Archivo: rfds.rpy
+🔍 Debug: Contenido de escenas convertido: 2 elementos
+🔍 Debug: Escena 1: {'type': 'command', 'command': 'label rfds:'}
+🔍 Debug: Escena 2: {'type': 'command', 'command': 'return'}
+🔍 Debug: Variables globales - current_scene_name: rfds
+🔍 Debug: Variables globales - current_scenes: 2 líneas
+🔍 Debug: Error obteniendo variables de pantalla: list index out of range
+🔍 Debug: Abriendo organizador de escenas...
 🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: 0 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 0
+🔍 Debug: Escena cargada: rfds (2 líneas)
+🔍 Debug: 1 escenas cargadas desde carpeta scenes/
+🔍 Debug: Escenas cargadas desde archivo: 1
 🔍 Debug: Escenas guardadas en organizador
-🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: 0 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 0
-🔍 Debug: Escenas guardadas en organizador
+🔍 Debug: Modal de organizador mostrada
+🔍 Debug: Vista previa de escena: rfds
+🔍 Debug: Vista previa mostrada para: rfds
+🔍 Debug: Abriendo modal de cargar proyecto...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: 1 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Abriendo modal de guardar proyecto...
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Guardando proyecto: Mi Proyecto
+🔍 Debug: Carpeta del proyecto creada: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\projects\mi_proyecto_1
+🔍 Debug: Escena copiada: rfds.rpy
+🔍 Debug: Proyecto guardado exitosamente: Mi Proyecto
+🔍 Debug: Abriendo modal de cargar proyecto...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: 2 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Abriendo modal de cargar proyecto...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: 2 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Abriendo modal de guardar proyecto...
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Abriendo modal de cargar proyecto...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: 2 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Abriendo modal de guardar proyecto...
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
 Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
 Maximum texture size: 4096x4096

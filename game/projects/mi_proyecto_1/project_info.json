@@ -1,0 +1,9 @@
+{
+  "name": "Mi Proyecto",
+  "created_date": "2025-08-19 17:51:03",
+  "current_scene": "rfds",
+  "total_scenes": 2,
+  "scenes": [
+    "rfds.rpy"
+  ]
+}
