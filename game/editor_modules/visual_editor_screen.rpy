@@ -55,6 +55,9 @@ init python:
     current_scene_name = ""
     current_scenes = []
     
+    # Variable para confirmación de eliminación
+    pending_delete_scene = None
+    
     def ensure_visual_layout_attributes():
         """Asegura que visual_layout tenga todos los atributos necesarios para la pantalla"""
         try:
@@ -893,6 +896,184 @@ init python:
         except Exception as e:
             print(f"🔍 Debug: Error en vista previa: {e}")
             renpy.notify(f"❌ Error mostrando vista previa: {e}")
+    
+    def delete_scene_from_organizer(scene_name):
+        """Elimina una escena desde el organizador y sus archivos"""
+        try:
+            print(f"🔍 Debug: Eliminando escena: {scene_name}")
+            
+            # Mostrar modal de confirmación
+            confirm_delete_scene(scene_name)
+            return
+            
+            # Buscar la escena en la lista del organizador
+            scenes = getattr(renpy.store, 'organizer_scenes_list', [])
+            target_scene = None
+            scene_index = -1
+            
+            for i, scene in enumerate(scenes):
+                if scene.get('name') == scene_name:
+                    target_scene = scene
+                    scene_index = i
+                    break
+            
+            if target_scene:
+                # Obtener la ruta del archivo
+                filepath = target_scene.get('filepath', '')
+                filename = target_scene.get('filename', '')
+                
+                if filepath:
+                    print(f"🔍 Debug: Eliminando archivo: {filepath}")
+                    
+                    # Eliminar archivo .rpy
+                    import os
+                    if os.path.exists(filepath):
+                        try:
+                            os.remove(filepath)
+                            print(f"🔍 Debug: Archivo .rpy eliminado: {filename}")
+                        except Exception as file_error:
+                            print(f"🔍 Debug: Error eliminando archivo .rpy: {file_error}")
+                            renpy.notify(f"⚠️ Error eliminando archivo: {filename}")
+                            return
+                    else:
+                        print(f"🔍 Debug: Archivo .rpy no encontrado: {filepath}")
+                    
+                    # Eliminar archivo .rpyc si existe
+                    rpyc_filepath = filepath.replace('.rpy', '.rpyc')
+                    if os.path.exists(rpyc_filepath):
+                        try:
+                            os.remove(rpyc_filepath)
+                            print(f"🔍 Debug: Archivo .rpyc eliminado: {filename.replace('.rpy', '.rpyc')}")
+                        except Exception as rpyc_error:
+                            print(f"🔍 Debug: Error eliminando archivo .rpyc: {rpyc_error}")
+                            # No es crítico si no se puede eliminar el .rpyc
+                    
+                    # Eliminar de la lista del organizador
+                    if scene_index >= 0:
+                        scenes.pop(scene_index)
+                        renpy.store.organizer_scenes_list = scenes
+                        print(f"🔍 Debug: Escena eliminada de la lista: {scene_name}")
+                    
+                    # Notificar éxito
+                    renpy.notify(f"🗑️ Escena eliminada: {scene_name}")
+                    print(f"🔍 Debug: Escena eliminada completamente: {scene_name}")
+                    
+                else:
+                    print(f"🔍 Debug: No se encontró ruta del archivo para: {scene_name}")
+                    renpy.notify(f"⚠️ No se encontró archivo para eliminar: {scene_name}")
+            else:
+                print(f"🔍 Debug: Escena no encontrada para eliminar: {scene_name}")
+                renpy.notify(f"⚠️ Escena no encontrada: {scene_name}")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error eliminando escena: {e}")
+            renpy.notify(f"❌ Error eliminando escena: {e}")
+    
+    def execute_scene_deletion(scene_name):
+        """Ejecuta la eliminación real de una escena"""
+        try:
+            print(f"🔍 Debug: Ejecutando eliminación de escena: {scene_name}")
+            
+            # Buscar la escena en la lista del organizador
+            scenes = getattr(renpy.store, 'organizer_scenes_list', [])
+            target_scene = None
+            scene_index = -1
+            
+            for i, scene in enumerate(scenes):
+                if scene.get('name') == scene_name:
+                    target_scene = scene
+                    scene_index = i
+                    break
+            
+            if target_scene:
+                # Obtener la ruta del archivo
+                filepath = target_scene.get('filepath', '')
+                filename = target_scene.get('filename', '')
+                
+                if filepath:
+                    print(f"🔍 Debug: Eliminando archivo: {filepath}")
+                    
+                    # Eliminar archivo .rpy
+                    import os
+                    if os.path.exists(filepath):
+                        try:
+                            os.remove(filepath)
+                            print(f"🔍 Debug: Archivo .rpy eliminado: {filename}")
+                        except Exception as file_error:
+                            print(f"🔍 Debug: Error eliminando archivo .rpy: {file_error}")
+                            renpy.notify(f"⚠️ Error eliminando archivo: {filename}")
+                            return
+                    else:
+                        print(f"🔍 Debug: Archivo .rpy no encontrado: {filepath}")
+                    
+                    # Eliminar archivo .rpyc si existe
+                    rpyc_filepath = filepath.replace('.rpy', '.rpyc')
+                    if os.path.exists(rpyc_filepath):
+                        try:
+                            os.remove(rpyc_filepath)
+                            print(f"🔍 Debug: Archivo .rpyc eliminado: {filename.replace('.rpy', '.rpyc')}")
+                        except Exception as rpyc_error:
+                            print(f"🔍 Debug: Error eliminando archivo .rpyc: {rpyc_error}")
+                            # No es crítico si no se puede eliminar el .rpyc
+                    
+                    # Eliminar de la lista del organizador
+                    if scene_index >= 0:
+                        scenes.pop(scene_index)
+                        renpy.store.organizer_scenes_list = scenes
+                        print(f"🔍 Debug: Escena eliminada de la lista: {scene_name}")
+                    
+                    # Notificar éxito
+                    renpy.notify(f"🗑️ Escena eliminada: {scene_name}")
+                    print(f"🔍 Debug: Escena eliminada completamente: {scene_name}")
+                    
+                    # Volver al organizador
+                    renpy.hide_screen("confirm_delete_scene_modal")
+                    renpy.show_screen("organize_scenes_modal")
+                    
+                else:
+                    print(f"🔍 Debug: No se encontró ruta del archivo para: {scene_name}")
+                    renpy.notify(f"⚠️ No se encontró archivo para eliminar: {scene_name}")
+            else:
+                print(f"🔍 Debug: Escena no encontrada para eliminar: {scene_name}")
+                renpy.notify(f"⚠️ Escena no encontrada: {scene_name}")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error ejecutando eliminación: {e}")
+            renpy.notify(f"❌ Error eliminando escena: {e}")
+    
+    def confirm_delete_scene(scene_name):
+        """Confirma la eliminación de una escena usando modal seguro"""
+        try:
+            print(f"🔍 Debug: Mostrando modal de confirmación para: {scene_name}")
+            
+            # Ocultar el organizador temporalmente para evitar conflictos
+            renpy.hide_screen("organize_scenes_modal")
+            
+            # Mostrar el modal de confirmación
+            renpy.show_screen("confirm_delete_scene_modal", scene_name=scene_name)
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error mostrando modal de confirmación: {e}")
+            renpy.notify(f"❌ Error mostrando confirmación: {e}")
+    
+    def debug_delete_state(scene_name):
+        """Función de debug para verificar el estado de eliminación"""
+        try:
+            pending_delete = getattr(renpy.store, 'pending_delete_scene', None)
+            scenes = getattr(renpy.store, 'organizer_scenes_list', [])
+            
+            print("🔍 === DEBUG ESTADO DE ELIMINACIÓN ===")
+            print(f"🎯 Escena solicitada: {scene_name}")
+            print(f"⏳ Escena pendiente: {pending_delete}")
+            print(f"✅ ¿Coinciden?: {pending_delete == scene_name}")
+            print(f"📋 Total de escenas en lista: {len(scenes)}")
+            print(f"📝 Escenas disponibles: {[s.get('name', '') for s in scenes]}")
+            print("=====================================")
+            
+            return True
+        except Exception as e:
+            print(f"🔍 Error en debug de eliminación: {e}")
+            return False
     
     def filter_scenes_by_current():
         """Filtra la lista de escenas para mostrar solo las de la escena actual"""
@@ -7438,6 +7619,14 @@ screen organize_scenes_modal():
                                                             background "#27ae60"
                                                             text_size 12
                                                             text_color "#ffffff"
+                                                        
+                                                        textbutton "🗑️ Eliminar":
+                                                            action Function(confirm_delete_scene, scene.get('name', ''))
+                                                            xsize 70
+                                                            ysize 25
+                                                            background "#e74c3c"
+                                                            text_size 12
+                                                            text_color "#ffffff"
                                 else:
                                     # Mensaje cuando no hay escenas
                                     frame:
@@ -7634,6 +7823,130 @@ screen scene_editor_modal():
                     textbutton "⬅️ Volver al Organizador" action [Hide("scene_editor_modal"), Show("organize_scenes_modal")] background "#3498db" hover_background "#2980b9"
                     textbutton "🏠 Volver al Editor" action [Hide("scene_editor_modal"), Show("visual_editor_screen")] background "#9b59b6" hover_background "#8e44ad"
 
+# ===== SISTEMA DE CONFIRMACIÓN DE ELIMINACIÓN (MODAL SEGURO) =====
+# El sistema de eliminación ahora funciona con modal de confirmación:
+# 1. Usuario presiona "Eliminar" → Se muestra modal de confirmación
+# 2. Usuario confirma → Se ejecuta la eliminación
+# 3. Se vuelve al organizador automáticamente
+
+# ===== PANTALLA DE CONFIRMACIÓN DE ELIMINACIÓN =====
+
+screen confirm_delete_scene_modal(scene_name):
+    modal True
+    
+    # Fondo semi-transparente
+    frame:
+        xfill True
+        yfill True
+        background "#000000"
+        at transform:
+            alpha 0.7
+    
+    # Modal compacto centrado
+    frame:
+        xsize 500
+        ysize 400
+        xalign 0.5
+        yalign 0.5
+        background "#2c3e50"
+        padding (20, 20)
+        at transform:
+            alpha 1.0
+        
+        vbox:
+            spacing 15
+            xfill True
+            yfill True
+            
+            # Header de confirmación
+            frame:
+                background "#e74c3c"
+                xfill True
+                padding (15, 10)
+                
+                vbox:
+                    spacing 5
+                    xfill True
+                    
+                    text "🗑️ Confirmar Eliminación" color "#ffffff" size 20 xalign 0.5
+                    text f"Escena: {scene_name}" color "#ecf0f1" size 14 xalign 0.5
+            
+            # Mensaje de confirmación
+            frame:
+                background "#34495e"
+                xfill True
+                yfill True
+                padding (15, 15)
+                
+                vbox:
+                    spacing 10
+                    xfill True
+                    yfill True
+                    
+                    # Mensaje principal
+                    text "¿Estás seguro de que quieres eliminar esta escena?" color "#ecf0f1" size 16 xalign 0.5 text_align 0.5
+                    
+                    # Advertencia compacta
+                    frame:
+                        background "#c0392b"
+                        xfill True
+                        padding (10, 10)
+                        
+                        vbox:
+                            spacing 5
+                            xalign 0.5
+                            
+                            text "⚠️ ADVERTENCIA" color "#ffffff" size 16 xalign 0.5
+                            text "Esta acción eliminará:" color "#ecf0f1" size 14 xalign 0.5
+                            text "• El archivo .rpy de la escena" color "#ecf0f1" size 12 xalign 0.5
+                            text "• El archivo .rpyc compilado" color "#ecf0f1" size 12 xalign 0.5
+                            text "• La escena de la lista del organizador" color "#ecf0f1" size 12 xalign 0.5
+                            text "Esta acción NO se puede deshacer." color "#ffffff" size 14 xalign 0.5
+                    
+                    # Información de la escena
+                    frame:
+                        background "#2c3e50"
+                        xfill True
+                        padding (10, 10)
+                        
+                        vbox:
+                            spacing 5
+                            xalign 0.5
+                            
+                            text "📋 Información de la escena:" color "#f39c12" size 14 xalign 0.5
+                            
+                            # Buscar información de la escena
+                            python:
+                                scenes = getattr(renpy.store, 'organizer_scenes_list', [])
+                                target_scene = None
+                                for scene in scenes:
+                                    if scene.get('name') == scene_name:
+                                        target_scene = scene
+                                        break
+                                
+                                scene_info = ""
+                                if target_scene:
+                                    content = target_scene.get('content', [])
+                                    filename = target_scene.get('filename', '')
+                                    scene_info = f"📁 Archivo: {filename}\n"
+                                    scene_info += f"📊 Elementos: {len(content)} líneas\n"
+                                    scene_info += f"📅 Creada: {target_scene.get('created_date', 'Desconocida')}"
+                                else:
+                                    scene_info = "❌ Información no disponible"
+                            
+                            text scene_info color "#bdc3c7" size 12 xalign 0.5 text_align 0.5
+            
+            # Botones de acción
+            hbox:
+                spacing 15
+                xalign 0.5
+                
+                # Botón Cancelar
+                textbutton "❌ Cancelar" action [Hide("confirm_delete_scene_modal"), Show("organize_scenes_modal")] background "#95a5a6" hover_background "#7f8c8d" text_color "#ffffff" text_hover_color "#ffffff" text_size 14 xsize 100 ysize 35
+                
+                # Botón Confirmar Eliminación
+                textbutton "🗑️ Eliminar" action [Function(execute_scene_deletion, scene_name)] background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size 14 xsize 100 ysize 35
+
 init python:
     # ===== SISTEMA HÍBRIDO MCKEE-ROTHAMEL PARA CREACIÓN DE ESCENAS =====
     
@@ -7696,7 +8009,7 @@ init python:
                 return scene_name.strip()
         except Exception as e:
             print(f"🔍 Debug: Error obteniendo variable global: {e}")
-        
+
         try:
             # Fallback 1: variable de pantalla
             scene_name = renpy.get_screen_variable("new_scene_name", "")
@@ -7705,7 +8018,7 @@ init python:
                 return scene_name.strip()
         except Exception as e:
             print(f"🔍 Debug: Error obteniendo variable de pantalla: {e}")
-        
+            
         try:
             # Fallback 2: Variable global alternativa
             scene_name = getattr(renpy.store, 'new_scene_name_global', "")
@@ -7795,7 +8108,7 @@ init python:
         except:
             # Fallback: variable global
             renpy.store.created_scenes_modal_global = created_scenes
-    
+                
     def clear_scene_input_safely():
         """Limpia el campo de entrada de forma segura"""
         try:
@@ -8032,11 +8345,11 @@ init python:
         
         # PLANTEAMIENTO: Verificar qué escenas tenemos
         created_scenes = get_created_scenes_safely()
-        
+            
         if not created_scenes:
             renpy.notify(create_clear_notification("validation", "No hay escenas para guardar"))
             return
-        
+            
         # CONFLICTO: Procesar y guardar las escenas
         try:
             # Obtener las escenas existentes de forma segura
@@ -8090,8 +8403,8 @@ init python:
                 scene_creation_state.mark_error()
             else:
                 renpy.notify(create_clear_notification("error", "Error inesperado al guardar las escenas"))
-                print(f"🔍 Debug: Error completo en accept_modal_scenes: {e}")
-                scene_creation_state.mark_error()
+            print(f"🔍 Debug: Error completo en accept_modal_scenes: {e}")
+            scene_creation_state.mark_error()
     
     def cancel_modal_scenes():
         """Cancela la creación de escenas con enfoque híbrido McKee-Rothamel"""
@@ -8125,8 +8438,8 @@ init python:
                 scene_creation_state.mark_error()
             else:
                 renpy.notify(create_clear_notification("error", "Error inesperado al cancelar"))
-                print(f"🔍 Debug: Error completo en cancel_modal_scenes: {e}")
-                scene_creation_state.mark_error()
+            print(f"🔍 Debug: Error completo en cancel_modal_scenes: {e}")
+            scene_creation_state.mark_error()
 
     def focus_simple_input():
         """Enfoca el campo de entrada de la ventana modal simple sin reiniciar"""
