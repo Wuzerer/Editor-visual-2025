@@ -1,11 +1,11 @@
-2025-08-19 22:31:00 UTC
+2025-08-19 22:39:41 UTC
 Windows-11-10.0.26100-SP0
 Ren'Py 8.4.1.25072401
 
-Early init took 46 ms
-Loading error handling took 23 ms
-Loading script took 157 ms
-Loading save slot metadata took 19 ms
+Early init took 41 ms
+Loading error handling took 24 ms
+Loading script took 160 ms
+Loading save slot metadata took 23 ms
 Loading persistent took 0 ms
 ⚠️ Layout no disponible desde layout_controller.rpy, creando fallback básico
 ✅ Layout fallback básico creado
@@ -61,7 +61,7 @@ Loading persistent took 0 ms
 📝 Contenido del archivo RPY:
 # current_scenes.rpy
 # Archivo generado automáticamente por el Editor Visual
-# Generado el: 2025-08-19 19:31:00
+# Generado el: 2025-08-19 19:39:42
 
 # Escena 1: Diálogo
 label scene_1_dialogue:
@@ -79,12 +79,12 @@ label scene_3_background:
     return
 
 ✅ Editor Operations inicializado con sistema RPY
-Running init code took 68 ms
-Loading analysis data took 6 ms
-Analyze and compile ATL took 2 ms
-Reloading save slot metadata took 4 ms
+Running init code took 64 ms
+Loading analysis data took 5 ms
+Analyze and compile ATL took 1 ms
+Reloading save slot metadata took 2 ms
 Backing up script files to 'C:\\Users\\sebas\\AppData\\Roaming/RenPy/backups\\Editor-visual-2025':
-Dump and make backups took 46 ms
+Dump and make backups took 41 ms
 Cleaning cache took 0 ms
 Making clean stores took 0 ms
 Initial gc took 46 ms
@@ -92,15 +92,15 @@ DPI scale factor: 1.250000
 nvdrs: Loaded, about to disable thread optimizations.
 nvdrs: b"Couldn't load nvlib." (can be ignored)
 Creating interface object took 4 ms
-Init translation took 1 ms
-Cleaning stores took 0 ms
+Init translation took 0 ms
+Cleaning stores took 1 ms
 Load screen analysis took 0 ms
 Analyze screens took 31 ms
-Save screen analysis took 29 ms
+Save screen analysis took 30 ms
 Save pyanalysis took 0 ms
-Save bytecode took 30 ms
+Save bytecode took 0 ms
 Running _start took 1 ms
-Interface start took 482 ms
+Interface start took 576 ms
 
 Initializing gl2 renderer:
 primary display bounds: (0, 0, 1920, 1200)
@@ -114,6 +114,3 @@ Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
 Maximum texture size: 4096x4096
 Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
 Maximum texture size: 4096x4096
-🔍 Debug: Verificando cambios antes de salir...
-🔍 Debug: Verificación de cambios no guardados - Escenas: 0, Proyecto guardado: False, Cambios no guardados: False
-🔍 Debug: No hay cambios no guardados, cerrando directamente...
