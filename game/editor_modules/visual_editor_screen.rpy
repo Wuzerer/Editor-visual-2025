@@ -417,44 +417,59 @@ init python:
             renpy.store.organizer_scenes_list = []
     
     def get_scenes_from_rpy_file():
-        """Obtiene las escenas desde el archivo RPY generado"""
+        """Obtiene las escenas desde la carpeta scenes/"""
         try:
             import os
-            rpy_file = os.path.join(config.gamedir, "current_scenes.rpy")
+            scenes_dir = os.path.join(config.gamedir, "scenes")
             
-            if os.path.exists(rpy_file):
-                with open(rpy_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                # Parsear el contenido para extraer las escenas
-                scenes = []
-                lines = content.split('\n')
-                current_scene = None
-                
-                for line in lines:
-                    line = line.strip()
-                    if line.startswith('label scene_'):
-                        # Nueva escena encontrada
-                        scene_name = line.split('label ')[1].split(':')[0]
-                        current_scene = {
+            if not os.path.exists(scenes_dir):
+                print(f"🔍 Debug: Carpeta scenes/ no encontrada, creando...")
+                os.makedirs(scenes_dir)
+            
+            scenes = []
+            
+            # Buscar archivos .rpy en la carpeta scenes/
+            for filename in os.listdir(scenes_dir):
+                if filename.endswith('.rpy'):
+                    scene_file = os.path.join(scenes_dir, filename)
+                    
+                    try:
+                        with open(scene_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        
+                        # Extraer información de la escena
+                        scene_name = filename.replace('.rpy', '')
+                        scene_type = 'scene'
+                        
+                        # Parsear contenido básico
+                        lines = content.split('\n')
+                        scene_content = []
+                        
+                        for line in lines:
+                            line = line.strip()
+                            if line and not line.startswith('#') and not line.startswith('='):
+                                scene_content.append(line)
+                        
+                        scene_data = {
                             'name': scene_name,
-                            'type': 'scene',
-                            'content': []
+                            'type': scene_type,
+                            'content': scene_content,
+                            'filename': filename,
+                            'filepath': scene_file
                         }
-                        scenes.append(current_scene)
-                    elif current_scene and line and not line.startswith('#'):
-                        # Contenido de la escena (solo líneas que no sean comentarios o vacías)
-                        if line and not line.startswith('#') and not line.startswith('='):
-                            current_scene['content'].append(line)
-                
-                print(f"🔍 Debug: {len(scenes)} escenas parseadas del archivo RPY")
-                return scenes
-            else:
-                print(f"🔍 Debug: Archivo RPY no encontrado")
-                return []
+                        
+                        scenes.append(scene_data)
+                        print(f"🔍 Debug: Escena cargada: {scene_name} ({len(scene_content)} líneas)")
+                        
+                    except Exception as file_error:
+                        print(f"🔍 Debug: Error leyendo archivo {filename}: {file_error}")
+                        continue
+            
+            print(f"🔍 Debug: {len(scenes)} escenas cargadas desde carpeta scenes/")
+            return scenes
                 
         except Exception as e:
-            print(f"🔍 Debug: Error parseando archivo RPY: {e}")
+            print(f"🔍 Debug: Error cargando escenas desde carpeta: {e}")
             return []
     
     def edit_scene_from_organizer(scene_name):
@@ -462,14 +477,58 @@ init python:
         try:
             print(f"🔍 Debug: Editando escena: {scene_name}")
             
-            # Cerrar la modal del organizador
-            renpy.hide_screen("organize_scenes_modal")
+            # Buscar la escena en la lista del organizador
+            scenes = getattr(renpy.store, 'organizer_scenes_list', [])
+            target_scene = None
             
-            # Cargar la escena para edición
-            load_scene_for_editing(scene_name)
+            for scene in scenes:
+                if scene.get('name') == scene_name:
+                    target_scene = scene
+                    break
             
-            # Notificar al usuario
-            renpy.notify(f"✏️ Editando escena: {scene_name}")
+            if target_scene:
+                # Obtener la ruta del archivo
+                filepath = target_scene.get('filepath', '')
+                filename = target_scene.get('filename', '')
+                
+                if filepath:
+                    print(f"🔍 Debug: Abriendo archivo para edición: {filepath}")
+                    
+                    # Cerrar la modal del organizador
+                    renpy.hide_screen("organize_scenes_modal")
+                    
+                    # Notificar al usuario
+                    renpy.notify(f"✏️ Editando escena: {scene_name} ({filename})")
+                    
+                    # Aquí podrías abrir el archivo en un editor externo o en una ventana de edición
+                    # Por ahora, solo notificamos que el archivo está listo para editar
+                    print(f"🔍 Debug: Archivo listo para edición: {filepath}")
+                    
+                    # Opcional: Abrir el archivo en el editor del sistema
+                    try:
+                        import os
+                        import subprocess
+                        import platform
+                        
+                        system = platform.system()
+                        if system == "Windows":
+                            os.startfile(filepath)
+                        elif system == "Darwin":  # macOS
+                            subprocess.run(["open", filepath])
+                        else:  # Linux
+                            subprocess.run(["xdg-open", filepath])
+                        
+                        print(f"🔍 Debug: Archivo abierto en editor del sistema")
+                        
+                    except Exception as open_error:
+                        print(f"🔍 Debug: Error abriendo archivo en editor: {open_error}")
+                        renpy.notify(f"📝 Archivo listo para editar: {filename}")
+                else:
+                    print(f"🔍 Debug: No se encontró ruta del archivo para: {scene_name}")
+                    renpy.notify(f"⚠️ No se encontró archivo para editar: {scene_name}")
+            else:
+                print(f"🔍 Debug: Escena no encontrada en organizador: {scene_name}")
+                renpy.notify(f"⚠️ Escena no encontrada: {scene_name}")
             
         except Exception as e:
             print(f"🔍 Debug: Error editando escena: {e}")
@@ -7426,86 +7485,65 @@ init python:
         
         # RESOLUCIÓN: Creación con manejo de errores
         try:
-            print(f"🔍 Debug: Guardando escena al archivo RPY...")
+            print(f"🔍 Debug: Creando nueva escena en carpeta scenes/...")
             
-            # Crear la escena para el archivo RPY
-            scene_data = {
-                'type': 'dialogue',
-                'character': 'Narrator',
-                'dialogue': f'Escena creada: {scene_name}',
-                'xalign': 0.5,
-                'yalign': 0.9
-            }
+            # Crear nombre de archivo seguro
+            safe_name = scene_name.lower().replace(" ", "_").replace("-", "_")
+            safe_name = ''.join(c for c in safe_name if c.isalnum() or c == '_')
             
-            # Obtener escenas existentes del archivo RPY
-            existing_scenes = get_scenes_from_rpy_file()
-            print(f"🔍 Debug: Escenas existentes: {len(existing_scenes)}")
+            # Crear archivo individual en carpeta scenes/
+            import os
+            scenes_dir = os.path.join(config.gamedir, "scenes")
             
-            # Agregar la nueva escena
-            new_scene = {
-                'name': f'scene_{len(existing_scenes) + 1}_{scene_name.lower().replace(" ", "_")}',
-                'type': 'scene',
-                'content': [
-                    f'# Escena: {scene_name}',
-                    f'label scene_{len(existing_scenes) + 1}_{scene_name.lower().replace(" ", "_")}:',
-                    f'    "Escena creada: {scene_name}"',
-                    '    return'
-                ]
-            }
+            if not os.path.exists(scenes_dir):
+                print(f"🔍 Debug: Creando carpeta scenes/...")
+                os.makedirs(scenes_dir)
             
-            existing_scenes.append(new_scene)
-            print(f"🔍 Debug: Nueva escena agregada: {new_scene["name"]}")
+            # Generar nombre único para el archivo
+            scene_filename = f"{safe_name}.rpy"
+            scene_filepath = os.path.join(scenes_dir, scene_filename)
             
-            # Guardar al archivo RPY usando la función del editor_operations
+            # Verificar si el archivo ya existe
+            counter = 1
+            while os.path.exists(scene_filepath):
+                scene_filename = f"{safe_name}_{counter}.rpy"
+                scene_filepath = os.path.join(scenes_dir, scene_filename)
+                counter += 1
+            
+            # Crear contenido de la escena
+            scene_content = [
+                f"# {scene_name}.rpy",
+                f"# Escena creada automáticamente por el Editor Visual",
+                f"# Generado el: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                "",
+                f"# Escena: {scene_name}",
+                f"label {safe_name}:",
+                f"    # Aquí puedes agregar el contenido de la escena",
+                f"    # Por ejemplo:",
+                f"    # scene bg room",
+                f"    # show eileen happy at center",
+                f"    # eileen \"¡Hola! Esta es la escena {scene_name}\"",
+                f"    ",
+                f"    # Contenido de la escena se agregará aquí",
+                f"    ",
+                f"    return"
+            ]
+            
+            # Escribir el archivo de la escena
             try:
-                from editor_operations import save_scenes_to_file
-                # Convertir el formato para save_scenes_to_file
-                scenes_for_save = []
-                for scene in existing_scenes:
-                    if scene.get('type') == 'scene':
-                        # Crear formato compatible con save_scenes_to_file
-                        scene_for_save = {
-                            'type': 'dialogue',
-                            'character': 'Narrator',
-                            'dialogue': f'Escena: {scene.get("name", "Sin nombre")}',
-                            'xalign': 0.5,
-                            'yalign': 0.9
-                        }
-                        scenes_for_save.append(scene_for_save)
+                with open(scene_filepath, 'w', encoding='utf-8') as f:
+                    f.write('\n'.join(scene_content))
                 
-                success = save_scenes_to_file(scenes_for_save)
-                if success:
-                    print(f"🔍 Debug: Escena guardada exitosamente al archivo RPY")
-                else:
-                    print(f"🔍 Debug: Error guardando al archivo RPY")
-                    
-            except Exception as save_error:
-                print(f"🔍 Debug: Error importando save_scenes_to_file: {save_error}")
-                # Fallback: guardar manualmente
-                try:
-                    import os
-                    rpy_file = os.path.join(config.gamedir, "current_scenes.rpy")
-                    
-                    # Generar contenido RPY
-                    content_lines = [
-                        "# current_scenes.rpy",
-                        "# Archivo generado automáticamente por el Editor Visual",
-                        f"# Generado el: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                        ""
-                    ]
-                    
-                    for scene in existing_scenes:
-                        content_lines.extend(scene.get('content', []))
-                        content_lines.append("")
-                    
-                    # Escribir al archivo
-                    with open(rpy_file, 'w', encoding='utf-8') as f:
-                        f.write('\n'.join(content_lines))
-                    
-                    print(f"🔍 Debug: Escena guardada manualmente al archivo RPY")
-                    
-                except Exception as manual_error:
-                    print(f"🔍 Debug: Error guardando manualmente: {manual_error}")
+                print(f"🔍 Debug: Escena creada exitosamente: {scene_filename}")
+                print(f"🔍 Debug: Ruta del archivo: {scene_filepath}")
+                
+                # Notificar éxito
+                renpy.notify(create_clear_notification("success", f"Escena '{scene_name}' creada en scenes/{scene_filename}"))
+                
+            except Exception as file_error:
+                print(f"🔍 Debug: Error creando archivo de escena: {file_error}")
+                renpy.notify(create_clear_notification("error", f"Error creando archivo de escena: {file_error}"))
+                return
             
             # Obtener la lista actual de escenas para la modal
             created_scenes = get_created_scenes_safely()

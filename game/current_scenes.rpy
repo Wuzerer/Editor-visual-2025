@@ -1,17 +1,18 @@
 # current_scenes.rpy
 # Archivo generado automáticamente por el Editor Visual
-# Generado el: 2025-08-19 16:29:34
+# Generado el: 2025-08-19 16:35:45
 
-eileen "¡Hola! Esta es una prueba del sistema RPY."
-return
+# Escena 1: Diálogo
+label scene_1_dialogue:
+    eileen "¡Hola! Esta es una prueba del sistema RPY."
+    return
 
-"El archivo RPY se ha generado correctamente."
-return
+# Escena 2: Diálogo
+label scene_2_dialogue:
+    "El archivo RPY se ha generado correctamente."
+    return
 
-scene bg room with dissolve
-return
-
-# Escena: dsa
-label scene_4_dsa:
-    "Escena creada: dsa"
+# Escena 3: Fondo
+label scene_3_background:
+    scene bg room with dissolve
     return
