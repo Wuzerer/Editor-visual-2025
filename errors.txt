@@ -2,17 +2,17 @@
 errors listed below, and try again.
 
 
-File "game/editor_modules/visual_editor_screen.rpy", line 8210: Line is indented, but the preceding textbutton statement does not expect a block. Please check this line's indentation. You may have forgotten a colon (:).
-    textbutton "🗑️ Eliminar" action [Function(execute_scene_deletion, scene_name)] background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size 14 xsize 100 ysize 35
-    ^
+The label rfds is defined twice, at File "game/projects/mi_proyecto/scenes/rfds.rpy", line 6:
+label rfds:
+and File "game/projects/mi_proyecto_1/scenes/rfds.rpy", line 6:
+label rfds:
 
-File "game/editor_modules/visual_editor_screen.rpy", line 8307: 'text_size' is not a keyword argument or valid child of the input statement.
-    text_size 16
-             ^
 
-File "game/editor_modules/visual_editor_screen.rpy", line 8391: 'text_size' is not a keyword argument or valid child of the input statement.
-    text_size 14
-             ^
+The label rfds is defined twice, at File "game/projects/mi_proyecto_1/scenes/rfds.rpy", line 6:
+label rfds:
+and File "game/scenes/rfds.rpy", line 6:
+label rfds:
+
 
 Ren'Py Version: Ren'Py 8.4.1.25072401
-Tue Aug 19 17:41:15 2025
+Tue Aug 19 18:09:26 2025

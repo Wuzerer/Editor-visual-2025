@@ -61,6 +61,7 @@ init python:
     # Variables para sistema de proyectos
     new_project_name = "Mi Proyecto"
     project_search_text = ""
+    overwrite_search_text = ""
     available_projects = []
     
     def ensure_visual_layout_attributes():
@@ -1118,17 +1119,21 @@ init python:
                 "scenes": []
             }
             
-            # Copiar archivos de escenas
+            # Copiar archivos de escenas con nombres únicos
             import shutil
             source_scenes_dir = os.path.join(config.gamedir, "scenes")
             if os.path.exists(source_scenes_dir):
                 for filename in os.listdir(source_scenes_dir):
                     if filename.endswith('.rpy'):
+                        # Crear nombre único para la escena
+                        base_name = filename[:-4]  # Sin .rpy
+                        unique_filename = f"{base_name}_{safe_folder_name}.rpy"
+                        
                         source_file = os.path.join(source_scenes_dir, filename)
-                        dest_file = os.path.join(scenes_dir, filename)
+                        dest_file = os.path.join(scenes_dir, unique_filename)
                         shutil.copy2(source_file, dest_file)
-                        project_info["scenes"].append(filename)
-                        print(f"🔍 Debug: Escena copiada: {filename}")
+                        project_info["scenes"].append(unique_filename)
+                        print(f"🔍 Debug: Escena copiada con nombre único: {unique_filename}")
             
             # Guardar información del proyecto
             import json
@@ -1240,10 +1245,21 @@ init python:
             if os.path.exists(project_scenes_dir):
                 for filename in os.listdir(project_scenes_dir):
                     if filename.endswith('.rpy'):
+                        # Extraer nombre base de la escena (sin sufijo del proyecto)
+                        if '_' in filename and filename.endswith('.rpy'):
+                            parts = filename[:-4].split('_')  # Sin .rpy
+                            if len(parts) > 1:
+                                # Reconstruir nombre original sin sufijo del proyecto
+                                original_name = '_'.join(parts[:-1]) + '.rpy'
+                            else:
+                                original_name = filename
+                        else:
+                            original_name = filename
+                        
                         source_file = os.path.join(project_scenes_dir, filename)
-                        dest_file = os.path.join(current_scenes_dir, filename)
+                        dest_file = os.path.join(current_scenes_dir, original_name)
                         shutil.copy2(source_file, dest_file)
-                        print(f"🔍 Debug: Escena copiada: {filename}")
+                        print(f"🔍 Debug: Escena copiada: {filename} -> {original_name}")
             
             # Cargar información del proyecto
             project_info_file = os.path.join(project_path, "project_info.json")
@@ -1302,6 +1318,142 @@ init python:
         except Exception as e:
             print(f"🔍 Debug: Error limpiando proyecto: {e}")
             renpy.notify(f"❌ Error limpiando proyecto: {e}")
+    
+    def fix_duplicate_labels():
+        """Arregla conflictos de labels duplicados"""
+        try:
+            print(f"🔍 Debug: Arreglando conflictos de labels duplicados...")
+            
+            import os
+            
+            # Limpiar escenas actuales para evitar conflictos
+            current_scenes_dir = os.path.join(config.gamedir, "scenes")
+            if os.path.exists(current_scenes_dir):
+                for filename in os.listdir(current_scenes_dir):
+                    if filename.endswith('.rpy'):
+                        os.remove(os.path.join(current_scenes_dir, filename))
+                        print(f"🔍 Debug: Escena conflictiva eliminada: {filename}")
+            
+            # Limpiar variables del editor
+            renpy.store.current_scene_name = ""
+            renpy.store.current_scenes = []
+            renpy.store.organizer_scenes_list = []
+            
+            # Recargar lista de escenas en el organizador
+            load_all_scenes_for_organizer()
+            
+            # Notificar éxito
+            renpy.notify("🔧 Conflictos de labels arreglados")
+            print(f"🔍 Debug: Conflictos de labels arreglados exitosamente")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error arreglando conflictos: {e}")
+            renpy.notify(f"❌ Error arreglando conflictos: {e}")
+    
+    def overwrite_project_modal():
+        """Abre el modal para sobrescribir un proyecto existente"""
+        try:
+            print(f"🔍 Debug: Abriendo modal de sobrescribir proyecto...")
+            
+            # Cargar lista de proyectos para seleccionar cuál sobrescribir
+            load_projects_list()
+            
+            # Ocultar el editor temporalmente
+            renpy.hide_screen("visual_editor")
+            
+            # Mostrar el modal de sobrescribir proyecto
+            renpy.show_screen("overwrite_project_modal")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error abriendo modal de sobrescribir proyecto: {e}")
+            renpy.notify(f"❌ Error abriendo modal de sobrescribir: {e}")
+    
+    def execute_overwrite_project(project_folder):
+        """Ejecuta la sobrescritura de un proyecto específico"""
+        try:
+            print(f"🔍 Debug: Sobrescribiendo proyecto: {project_folder}")
+            
+            import os
+            import shutil
+            
+            # Ruta del proyecto
+            projects_dir = os.path.join(config.gamedir, "projects")
+            project_path = os.path.join(projects_dir, project_folder)
+            
+            if not os.path.exists(project_path):
+                renpy.notify(f"⚠️ Proyecto no encontrado: {project_folder}")
+                return
+            
+            # Obtener información del proyecto original
+            project_info_file = os.path.join(project_path, "project_info.json")
+            original_project_name = project_folder
+            
+            if os.path.exists(project_info_file):
+                import json
+                with open(project_info_file, 'r', encoding='utf-8') as f:
+                    original_info = json.load(f)
+                    original_project_name = original_info.get('name', project_folder)
+            
+            # Limpiar escenas del proyecto existente
+            project_scenes_dir = os.path.join(project_path, "scenes")
+            if os.path.exists(project_scenes_dir):
+                for filename in os.listdir(project_scenes_dir):
+                    if filename.endswith('.rpy'):
+                        os.remove(os.path.join(project_scenes_dir, filename))
+                        print(f"🔍 Debug: Escena eliminada del proyecto: {filename}")
+            
+            # Copiar escenas actuales al proyecto con nombres únicos
+            current_scenes_dir = os.path.join(config.gamedir, "scenes")
+            if os.path.exists(current_scenes_dir):
+                for filename in os.listdir(current_scenes_dir):
+                    if filename.endswith('.rpy'):
+                        # Crear nombre único para la escena
+                        base_name = filename[:-4]  # Sin .rpy
+                        unique_filename = f"{base_name}_{project_folder}.rpy"
+                        
+                        source_file = os.path.join(current_scenes_dir, filename)
+                        dest_file = os.path.join(project_scenes_dir, unique_filename)
+                        shutil.copy2(source_file, dest_file)
+                        print(f"🔍 Debug: Escena copiada al proyecto con nombre único: {unique_filename}")
+            
+            # Obtener escenas actuales
+            current_scenes = getattr(renpy.store, 'current_scenes', [])
+            current_scene_name = getattr(renpy.store, 'current_scene_name', "")
+            
+            # Actualizar información del proyecto
+            updated_project_info = {
+                "name": original_project_name,
+                "created_date": original_info.get('created_date', 'Desconocida') if 'original_info' in locals() else 'Desconocida',
+                "updated_date": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                "current_scene": current_scene_name,
+                "total_scenes": len(current_scenes),
+                "scenes": []
+            }
+            
+            # Listar archivos de escenas actualizados (con nombres únicos)
+            if os.path.exists(current_scenes_dir):
+                for filename in os.listdir(current_scenes_dir):
+                    if filename.endswith('.rpy'):
+                        # Crear nombre único para la escena
+                        base_name = filename[:-4]  # Sin .rpy
+                        unique_filename = f"{base_name}_{project_folder}.rpy"
+                        updated_project_info["scenes"].append(unique_filename)
+            
+            # Guardar información actualizada del proyecto
+            with open(project_info_file, 'w', encoding='utf-8') as f:
+                json.dump(updated_project_info, f, indent=2, ensure_ascii=False)
+            
+            # Notificar éxito
+            renpy.notify(f"💾 Proyecto sobrescrito: {original_project_name}")
+            print(f"🔍 Debug: Proyecto sobrescrito exitosamente: {original_project_name}")
+            
+            # Volver al editor
+            renpy.hide_screen("overwrite_project_modal")
+            renpy.show_screen("visual_editor")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error sobrescribiendo proyecto: {e}")
+            renpy.notify(f"❌ Error sobrescribiendo proyecto: {e}")
     
     def confirm_delete_scene(scene_name):
         """Confirma la eliminación de una escena usando modal seguro"""
@@ -4892,7 +5044,7 @@ screen visual_editor():
                                     # Panel de Gestión de Proyectos
                                     frame:
                                         xminimum 400
-                                        ysize 180
+                                        ysize 260
                                         background "#8e44ad"
                                         padding (20, 15)
                                         xalign 0.5
@@ -4925,6 +5077,15 @@ screen visual_editor():
                                                         xalign 0.5
                                                         text_style "text_with_outline"
                                                     
+                                                    textbutton "💾 Sobrescribir":
+                                                        action Function(overwrite_project_modal)
+                                                        xminimum 100
+                                                        ysize 50
+                                                        padding (12, 8)
+                                                        background "#f39c12"
+                                                        xalign 0.5
+                                                        text_style "text_with_outline"
+                                                    
                                                     textbutton "📂 Cargar":
                                                         action Function(load_project_modal)
                                                         xminimum 100
@@ -4940,6 +5101,15 @@ screen visual_editor():
                                                         ysize 50
                                                         padding (12, 8)
                                                         background "#e74c3c"
+                                                        xalign 0.5
+                                                        text_style "text_with_outline"
+                                                    
+                                                    textbutton "🔧 Arreglar":
+                                                        action Function(fix_duplicate_labels)
+                                                        xminimum 100
+                                                        ysize 50
+                                                        padding (12, 8)
+                                                        background "#9b59b6"
                                                         xalign 0.5
                                                         text_style "text_with_outline"
                                     
@@ -8448,6 +8618,178 @@ screen load_project_modal():
                 
                 # Botón Cancelar
                 textbutton "❌ Cancelar" action [Hide("load_project_modal"), Show("visual_editor")] background "#95a5a6" hover_background "#7f8c8d" text_color "#ffffff" text_hover_color "#ffffff" text_size 14 xsize 100 ysize 35
+
+# ===== PANTALLA DE SOBRESCRIBIR PROYECTO =====
+
+screen overwrite_project_modal():
+    modal True
+    
+    # Fondo semi-transparente
+    frame:
+        xfill True
+        yfill True
+        background "#000000"
+        at transform:
+            alpha 0.7
+    
+    # Modal compacto centrado
+    frame:
+        xsize 600
+        ysize 500
+        xalign 0.5
+        yalign 0.5
+        background "#2c3e50"
+        padding (20, 20)
+        at transform:
+            alpha 1.0
+        
+        vbox:
+            spacing 15
+            xfill True
+            yfill True
+            
+            # Header
+            frame:
+                background "#f39c12"
+                xfill True
+                padding (15, 10)
+                
+                vbox:
+                    spacing 5
+                    xfill True
+                    
+                    text "💾 Sobrescribir Proyecto" color "#ffffff" size 20 xalign 0.5
+                    text "Selecciona un proyecto para sobrescribir con los cambios actuales" color "#ecf0f1" size 14 xalign 0.5
+            
+            # Información del proyecto actual
+            frame:
+                background "#34495e"
+                xfill True
+                padding (15, 15)
+                
+                vbox:
+                    spacing 10
+                    xfill True
+                    
+                    text "📋 Cambios Actuales:" color "#f39c12" size 16 xalign 0.5
+                    
+                    python:
+                        current_scenes = getattr(renpy.store, 'current_scenes', [])
+                        current_scene_name = getattr(renpy.store, 'current_scene_name', '')
+                        scenes_dir = os.path.join(config.gamedir, "scenes")
+                        scene_count = 0
+                        if os.path.exists(scenes_dir):
+                            scene_count = len([f for f in os.listdir(scenes_dir) if f.endswith('.rpy')])
+                        
+                        current_info = f"📊 Escenas en editor: {len(current_scenes)}\n"
+                        current_info += f"📁 Archivos de escenas: {scene_count}\n"
+                        current_info += f"🎭 Escena actual: {current_scene_name if current_scene_name else 'Ninguna'}"
+                    
+                    text current_info color "#bdc3c7" size 14 xalign 0.5 text_align 0.5
+            
+            # Lista de proyectos
+            frame:
+                background "#34495e"
+                xfill True
+                yfill True
+                padding (15, 15)
+                
+                vbox:
+                    spacing 10
+                    xfill True
+                    yfill True
+                    
+                    # Barra de búsqueda
+                    frame:
+                        background "#2c3e50"
+                        xfill True
+                        padding (10, 10)
+                        
+                        vbox:
+                            spacing 5
+                            xalign 0.5
+                            
+                            text "🔍 Buscar Proyecto:" color "#f39c12" size 14 xalign 0.5
+                            
+                            input:
+                                value FieldInputValue(renpy.store, "overwrite_search_text")
+                                xfill True
+                                color "#ffffff"
+                                size 14
+                                default "Buscar proyectos..."
+                    
+                    # Lista de proyectos
+                    frame:
+                        background "#2c3e50"
+                        xfill True
+                        yfill True
+                        padding (10, 10)
+                        
+                        viewport:
+                            scrollbars "vertical"
+                            mousewheel True
+                            
+                            vbox:
+                                spacing 10
+                                xfill True
+                                
+                                python:
+                                    projects = getattr(renpy.store, 'available_projects', [])
+                                    search_text = getattr(renpy.store, 'overwrite_search_text', '').lower()
+                                    
+                                    if search_text:
+                                        filtered_projects = [p for p in projects if search_text in p['name'].lower()]
+                                    else:
+                                        filtered_projects = projects
+                                
+                                if filtered_projects:
+                                    for project in filtered_projects:
+                                        frame:
+                                            background "#34495e"
+                                            xfill True
+                                            padding (15, 15)
+                                            
+                                            vbox:
+                                                spacing 10
+                                                xfill True
+                                                
+                                                # Información del proyecto
+                                                vbox:
+                                                    spacing 5
+                                                    xfill True
+                                                    
+                                                    text f"📁 {project['name']}" color "#ffffff" size 16 xalign 0.0
+                                                    text f"📅 Creado: {project['created_date']}" color "#bdc3c7" size 12 xalign 0.0
+                                                    text f"📊 Escenas actuales: {project['total_scenes']}" color "#27ae60" size 12 xalign 0.0
+                                                    if project['current_scene']:
+                                                        text f"🎭 Escena actual: {project['current_scene']}" color "#3498db" size 12 xalign 0.0
+                                                
+                                                # Botón sobrescribir
+                                                textbutton "💾 Sobrescribir Proyecto" action [Function(execute_overwrite_project, project['folder'])] background "#f39c12" hover_background "#e67e22" text_color "#ffffff" text_hover_color "#ffffff" text_size 12 xsize 140 ysize 25
+                                else:
+                                    frame:
+                                        background "#34495e"
+                                        xfill True
+                                        padding (20, 15)
+                                        
+                                        vbox:
+                                            spacing 10
+                                            xalign 0.5
+                                            yalign 0.5
+                                            
+                                            text "📭 No hay proyectos disponibles" color "#bdc3c7" size 16 xalign 0.5
+                                            text "Crea algunos proyectos primero usando 'Guardar Proyecto'" color "#95a5a6" size 12 xalign 0.5
+            
+            # Botones
+            hbox:
+                spacing 15
+                xalign 0.5
+                
+                # Botón Actualizar
+                textbutton "🔄 Actualizar" action Function(load_projects_list) background "#f39c12" hover_background "#e67e22" text_color "#ffffff" text_hover_color "#ffffff" text_size 14 xsize 100 ysize 35
+                
+                # Botón Cancelar
+                textbutton "❌ Cancelar" action [Hide("overwrite_project_modal"), Show("visual_editor")] background "#95a5a6" hover_background "#7f8c8d" text_color "#ffffff" text_hover_color "#ffffff" text_size 14 xsize 100 ysize 35
 
 init python:
     # ===== SISTEMA HÍBRIDO MCKEE-ROTHAMEL PARA CREACIÓN DE ESCENAS =====
