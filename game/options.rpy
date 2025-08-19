@@ -148,7 +148,7 @@ default preferences.afm_time = 15
 ## Normalmente, este valor no debe ser modificado. Si lo es, debe ser siempre
 ## una cadena literal y no una expresión.
 
-define config.save_directory = "EditorVisual-1754863730"
+define config.save_directory = "RynEditor-1754863730"
 
 
 ## Icono #######################################################################

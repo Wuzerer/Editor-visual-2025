@@ -9438,7 +9438,7 @@ init python:
         
         # PLANTEAMIENTO: Verificar qué escenas tenemos
         created_scenes = get_created_scenes_safely()
-            
+        
         if not created_scenes:
             renpy.notify(create_clear_notification("validation", "No hay escenas para guardar"))
             return
