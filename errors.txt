@@ -1,0 +1,14 @@
+﻿I'm sorry, but errors were detected in your script. Please correct the
+errors listed below, and try again.
+
+
+File "game/editor_modules/visual_editor_screen.rpy", line 797: Line is indented, but the preceding text statement does not expect a block. Please check this line's indentation. You may have forgotten a colon (:).
+    if selected_background_global:
+    ^
+
+File "game/editor_modules/visual_editor_screen.rpy", line 4642: invalid syntax
+    'transition': char_transition or 'dissolve',
+        ^^^^^^^^^^^^
+
+Ren'Py Version: Ren'Py 8.4.1.25072401
+Tue Aug 19 13:10:25 2025

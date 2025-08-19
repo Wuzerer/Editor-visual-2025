@@ -144,5 +144,8 @@
                 }
             }
         ]
-    }
+    },
+    "cursorpyright.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ]
 }

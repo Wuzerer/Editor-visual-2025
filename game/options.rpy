@@ -13,7 +13,7 @@
 ##
 ## El _() que rodea la cadena de texto la señala como traducible.
 
-define config.name = _("Editor Visual de Novelas")
+define config.name = _("Ryn Editor - Editor Visual de Novelas")
 
 
 ## Determina si el título dado más arriba se muestra en el menú principal.
@@ -41,7 +41,7 @@ sin necesidad de programación.
 ## Nombre breve del juego para ejecutables y directorios en la distribución.
 ## Debe contener solo carácteres ASCII, sin espacios, comas o puntos y coma.
 
-define build.name = "EditorVisual"
+define build.name = "RynEditor"
 
 
 ## Sonidos y música ############################################################

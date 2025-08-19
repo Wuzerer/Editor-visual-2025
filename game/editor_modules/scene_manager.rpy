@@ -6,8 +6,9 @@ init -2 python:
     import json
     from datetime import datetime
     
-    # Sistema de escenas basado en archivos JSON
-    CURRENT_SCENES_FILE = "current_scenes.json"
+    # Sistema de escenas basado en archivos RPY
+    CURRENT_SCENES_FILE = os.path.join(config.gamedir, "current_scenes.rpy")
+    SCENES_DIR = os.path.join(config.gamedir, "scenes")
     
     # Sistema de eliminación mejorado
     deleted_scenes_history = []  # Historial de eliminaciones para deshacer
@@ -19,9 +20,12 @@ init -2 python:
         """Guarda las escenas actuales a un archivo JSON"""
         try:
             if filename is None:
-                filename = CURRENT_SCENES_FILE
+                filepath = CURRENT_SCENES_FILE
+            else:
+                filepath = os.path.join(config.gamedir, filename)
             
-            filepath = os.path.join(config.gamedir, filename)
+            # Asegurar que el directorio existe
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
             
             # Crear datos de escenas con metadatos
             scenes_with_metadata = {
@@ -34,7 +38,7 @@ init -2 python:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(scenes_with_metadata, f, indent=2, ensure_ascii=False)
             
-            print(f"✅ Escenas guardadas en {filename}")
+            print(f"✅ Escenas guardadas en {filepath}")
             return True
             
         except Exception as e:
@@ -45,18 +49,18 @@ init -2 python:
         """Carga las escenas desde un archivo JSON"""
         try:
             if filename is None:
-                filename = CURRENT_SCENES_FILE
-            
-            filepath = os.path.join(config.gamedir, filename)
+                filepath = CURRENT_SCENES_FILE
+            else:
+                filepath = os.path.join(config.gamedir, filename)
             
             if os.path.exists(filepath):
                 with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     scenes = data.get('scenes', [])
-                    print(f"✅ {len(scenes)} escenas cargadas desde {filename}")
+                    print(f"✅ {len(scenes)} escenas cargadas desde {filepath}")
                     return scenes
             else:
-                print(f"⚠️ Archivo {filename} no encontrado, creando nuevo")
+                print(f"⚠️ Archivo {filepath} no encontrado, creando nuevo")
                 return []
                 
         except Exception as e:

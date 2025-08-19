@@ -1,0 +1,178 @@
+2025-08-19 19:10:41 UTC
+Windows-11-10.0.26100-SP0
+Ren'Py 8.4.1.25072401
+
+Early init took 41 ms
+Loading error handling took 21 ms
+Loading script took 473 ms
+Loading save slot metadata took 19 ms
+Loading persistent took 0 ms
+⚠️ Layout no disponible desde layout_controller.rpy, creando fallback básico
+✅ Layout fallback básico creado
+✅ Todos los atributos de layout verificados
+✅ Instancia segura de visual_layout creada
+✅ Editor visual optimizado inicializado
+✅ Módulo de gestión de proyectos cargado
+✅ Fondo definido: bg_Captura de pantalla (1)
+✅ Fondo definido: bg_image_1754095123983
+✅ Definición automática de fondos completada
+✅ Sprite definido: eileen_concerned
+✅ Sprite definido: eileen_happy
+✅ Sprite definido: eileen_vhappy
+✅ Sprite definido: lucy_happy
+✅ Sprite definido: lucy_mad
+✅ Definición automática de sprites completada
+✅ Módulo de gestión de recursos cargado
+✅ Módulo de gestión de escenas cargado
+✅ Layout central inicializado en layout_controller.rpy
+⚠️ Error al cargar configuración persistente: No module named 'persistent_config'
+❌ Archivo faltante: visual_editor.rpy
+⚠️ Editor Visual no encontrado - Botón no se agregará al menú
+💡 Para activar el editor, asegúrate de que todos los archivos estén presentes
+⚠️ Agregando atributo faltante a visual_layout: preview_area_x = 0
+⚠️ Agregando atributo faltante a visual_layout: preview_area_y = 0
+⚠️ Agregando atributo faltante a visual_layout: scenes_area_x = 820
+⚠️ Agregando atributo faltante a visual_layout: scenes_area_y = 0
+⚠️ Agregando atributo faltante a visual_layout: panel_area_x = 0
+⚠️ Agregando atributo faltante a visual_layout: panel_area_y = 420
+⚠️ Agregando atributo faltante a visual_layout: button_height = 40
+⚠️ Agregando atributo faltante a visual_layout: button_width = 120
+⚠️ Agregando atributo faltante a visual_layout: text_input_height = 30
+⚠️ Agregando atributo faltante a visual_layout: text_input_width = 300
+✅ Todos los atributos de visual_layout verificados para la pantalla
+✅ text_sizes verificado para la pantalla
+✅ Pantalla visual_editor cargada
+🔍 DIAGNÓSTICO DE RUTAS:
+• config.gamedir: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game
+• PROJECTS_DIR: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\projects
+• CURRENT_SCENES_FILE: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\current_scenes.rpy
+• SCENES_DIR: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\scenes
+✅ config.gamedir existe
+✅ PROJECTS_DIR existe
+✅ SCENES_DIR existe
+✅ CURRENT_SCENES_FILE existe
+✅ Permisos de escritura OK
+🧪 PROBANDO GENERACIÓN DE ARCHIVO RPY
+✅ Escenas guardadas en: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\current_scenes.rpy
+✅ Archivo RPY generado exitosamente
+✅ Archivo creado en: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\current_scenes.rpy
+📝 Contenido del archivo RPY:
+# current_scenes.rpy
+# Archivo generado automáticamente por el Editor Visual
+# Generado el: 2025-08-19 16:10:42
+
+# Escena 1: Diálogo
+label scene_1_dialogue:
+    eileen "¡Hola! Esta es una prueba del sistema RPY."
+    return
+
+# Escena 2: Diálogo
+label scene_2_dialogue:
+    "El archivo RPY se ha generado correctamente."
+    return
+
+# Escena 3: Fondo
+label scene_3_background:
+    scene bg room with dissolve
+    return
+
+✅ Editor Operations inicializado con sistema RPY
+Running init code took 57 ms
+Loading analysis data took 4 ms
+Analyze and compile ATL took 1 ms
+Reloading save slot metadata took 4 ms
+Backing up script files to 'C:\\Users\\sebas\\AppData\\Roaming/RenPy/backups\\Editor-visual-2025':
+Dump and make backups took 41 ms
+Cleaning cache took 0 ms
+Making clean stores took 1 ms
+Initial gc took 52 ms
+DPI scale factor: 1.250000
+nvdrs: Loaded, about to disable thread optimizations.
+nvdrs: b"Couldn't load nvlib." (can be ignored)
+Creating interface object took 2 ms
+Init translation took 1 ms
+Cleaning stores took 0 ms
+Load screen analysis took 0 ms
+Analyze screens took 18 ms
+Save screen analysis took 28 ms
+Save pyanalysis took 0 ms
+Save bytecode took 30 ms
+Running _start took 1 ms
+Interface start took 467 ms
+
+Initializing gl2 renderer:
+primary display bounds: (0, 0, 1920, 1200)
+swap interval: 1 frames
+Windowed mode.
+Vendor: 'ATI Technologies Inc.'
+Renderer: 'AMD Radeon(TM) Graphics'
+Version: '4.6.0 Compatibility Profile Context 24.10.30.12.250417'
+Display Info: <Info({'bitsize': 32, 'bytesize': 4, 'masks': (16711680, 65280, 255, 0), 'shifts': (16, 8, 0, 0), 'losses': (0, 0, 0, 8), 'current_w': 1920, 'current_h': 1200, 'refresh_rate': 60, 'hw': False, 'wm': True, 'video_mem': 268435456, 'blit_hw': False, 'blit_hw_CC': False, 'blit_hw_A': False, 'blit_sw': False, 'blit_sw_CC': False, 'blit_sw_A': False})>
+Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
+Maximum texture size: 4096x4096
+Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
+Maximum texture size: 4096x4096
+🔍 Debug: Activando edición del nombre...
+🔍 Debug: Campo activado, scene_name_active = True (pantalla y global)
+🔍 Debug: Activación completada exitosamente
+🔍 Debug: Error sincronizando new_scene_name desde pantalla: Screen  is not showing.
+🔍 Debug: Error sincronizando scene_name_active desde pantalla: 'bool' object is not subscriptable
+🔍 Debug: Aceptando nombre de escena...
+🔍 Debug: Usando variable global: '5'
+🔍 Debug: Nombre actual obtenido de forma segura: '5'
+🔍 Debug: Campo desactivado, scene_name_active = False
+🔍 Debug: Nombre guardado exitosamente
+🔍 Debug: Error sincronizando new_scene_name desde pantalla: Screen  is not showing.
+🔍 Debug: Error sincronizando scene_name_active desde pantalla: 'bool' object is not subscriptable
+🔍 Debug: new_scene_name sincronizado desde global: '5'
+🔍 Debug: Iniciando add_scene_to_modal()
+🔍 Debug: Modal está lista, obteniendo nombre...
+🔍 Debug: Usando variable global: '5'
+🔍 Debug: Nombre obtenido: '5' (tipo: <class 'str'>)
+🔍 Debug: Iniciando validación...
+🔍 Debug: Validando nombre: '5' (tipo: <class 'str'>)
+🔍 Debug: Nombre válido: '5'
+🔍 Debug: Resultado validación: True - Nombre válido
+🔍 Debug: Campo limpiado exitosamente
+🔍 Debug: Activando edición del nombre...
+🔍 Debug: Campo activado, scene_name_active = True (pantalla y global)
+🔍 Debug: Activación completada exitosamente
+🔍 Debug: Error sincronizando new_scene_name desde pantalla: Screen  is not showing.
+🔍 Debug: Error sincronizando scene_name_active desde pantalla: 'bool' object is not subscriptable
+🔍 Debug: new_scene_name sincronizado desde global: '5'
+🔍 Debug: Aceptando nombre de escena...
+🔍 Debug: Usando variable global: '57885'
+🔍 Debug: Nombre actual obtenido de forma segura: '57885'
+🔍 Debug: Campo desactivado, scene_name_active = False
+🔍 Debug: Nombre guardado exitosamente
+🔍 Debug: Error sincronizando new_scene_name desde pantalla: Screen  is not showing.
+🔍 Debug: Error sincronizando scene_name_active desde pantalla: 'bool' object is not subscriptable
+🔍 Debug: new_scene_name sincronizado desde global: '57885'
+🔍 Debug: Activando edición del nombre...
+🔍 Debug: Campo activado, scene_name_active = True (pantalla y global)
+🔍 Debug: Activación completada exitosamente
+🔍 Debug: Error sincronizando new_scene_name desde pantalla: Screen  is not showing.
+🔍 Debug: Error sincronizando scene_name_active desde pantalla: 'bool' object is not subscriptable
+🔍 Debug: new_scene_name sincronizado desde global: '57885'
+🔍 Debug: Aceptando nombre de escena...
+🔍 Debug: Usando variable global: '57885'
+🔍 Debug: Nombre actual obtenido de forma segura: '57885'
+🔍 Debug: Campo desactivado, scene_name_active = False
+🔍 Debug: Nombre guardado exitosamente
+🔍 Debug: Error sincronizando new_scene_name desde pantalla: Screen  is not showing.
+🔍 Debug: Error sincronizando scene_name_active desde pantalla: 'bool' object is not subscriptable
+🔍 Debug: new_scene_name sincronizado desde global: '57885'
+🔍 Debug: Iniciando add_scene_to_modal()
+🔍 Debug: Modal está lista, obteniendo nombre...
+🔍 Debug: Usando variable global: '57885'
+🔍 Debug: Nombre obtenido: '57885' (tipo: <class 'str'>)
+🔍 Debug: Iniciando validación...
+🔍 Debug: Validando nombre: '57885' (tipo: <class 'str'>)
+🔍 Debug: Nombre válido: '57885'
+🔍 Debug: Resultado validación: True - Nombre válido
+🔍 Debug: Campo limpiado exitosamente
+🔍 Debug: Campo limpiado exitosamente
+Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
+Maximum texture size: 4096x4096
+Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
+Maximum texture size: 4096x4096

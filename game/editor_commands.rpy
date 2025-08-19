@@ -9,23 +9,27 @@ init python:
     
     # Configuración del sistema
     PROJECTS_DIR = os.path.join(config.gamedir, "projects")
-    CURRENT_SCENES_FILE = "current_scenes.json"
+    CURRENT_SCENES_FILE = os.path.join(config.gamedir, "current_scenes.rpy")
+    SCENES_DIR = os.path.join(config.gamedir, "scenes")
     
-    # Asegurar que el directorio de proyectos existe
+    # Asegurar que los directorios existen
     if not os.path.exists(PROJECTS_DIR):
         os.makedirs(PROJECTS_DIR)
+    if not os.path.exists(SCENES_DIR):
+        os.makedirs(SCENES_DIR)
     
     # ===== FUNCIONES BÁSICAS DE ARCHIVO =====
     
     def clear_file_basic():
-        """Limpia el archivo de forma básica"""
+        """Limpia el archivo RPY de forma básica"""
         try:
             if os.path.exists(CURRENT_SCENES_FILE):
+                empty_content = "# current_scenes.rpy\n# Archivo vacío\n"
                 with open(CURRENT_SCENES_FILE, 'w', encoding='utf-8') as f:
-                    json.dump([], f, ensure_ascii=False, indent=2)
-                renpy.notify("🗑️ Archivo limpiado")
+                    f.write(empty_content)
+                renpy.notify("🗑️ Archivo RPY limpiado")
             else:
-                renpy.notify("📝 Archivo no existe")
+                renpy.notify("📝 Archivo RPY no existe")
         except Exception as e:
             renpy.notify(f"❌ Error: {str(e)}")
     
@@ -42,47 +46,48 @@ init python:
             renpy.notify(f"❌ Error: {str(e)}")
     
     def add_test_basic():
-        """Agrega escena de prueba de forma básica"""
+        """Agrega escena de prueba de forma básica al archivo RPY"""
         try:
-            test_scene = {
-                'type': 'dialogue',
-                'character': 'Eileen',
-                'dialogue': 'Prueba básica al archivo',
-                'xalign': 0.5,
-                'yalign': 0.9
-            }
+            # Crear contenido RPY de ejemplo
+            rpy_content = """# current_scenes.rpy
+# Archivo generado automáticamente por el Editor Visual
+# Generado el: {datetime}
+
+# Escena 1: Diálogo
+label scene_1_dialogue:
+    eileen "¡Hola! Esta es una escena de prueba generada automáticamente."
+    return
+
+# Escena 2: Diálogo del narrador
+label scene_2_dialogue:
+    "El sistema está funcionando correctamente."
+    return
+
+# Escena 3: Fondo
+label scene_3_background:
+    scene bg room with dissolve
+    return
+""".format(datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             
-            # Cargar escenas existentes
-            scenes = []
-            if os.path.exists(CURRENT_SCENES_FILE):
-                with open(CURRENT_SCENES_FILE, 'r', encoding='utf-8') as f:
-                    scenes = json.load(f)
-            
-            # Agregar nueva escena
-            scenes.append(test_scene)
-            
-            # Guardar
+            # Guardar el archivo RPY
             with open(CURRENT_SCENES_FILE, 'w', encoding='utf-8') as f:
-                json.dump(scenes, f, ensure_ascii=False, indent=2)
+                f.write(rpy_content)
             
-            # Sincronizar pantalla automáticamente
-            try:
-                renpy.set_screen_variable("current_scene", scenes)
-                renpy.notify(f"✅ Agregada y sincronizada: {len(scenes)} escenas")
-            except:
-                renpy.notify(f"✅ Agregada: {len(scenes)} escenas (sincronizar manualmente)")
+            renpy.notify("✅ Archivo RPY de prueba creado exitosamente")
         except Exception as e:
             renpy.notify(f"❌ Error: {str(e)}")
     
     def check_files_basic():
-        """Verifica archivos de forma básica"""
+        """Verifica archivos RPY de forma básica"""
         try:
             if os.path.exists(CURRENT_SCENES_FILE):
                 with open(CURRENT_SCENES_FILE, 'r', encoding='utf-8') as f:
-                    scenes = json.load(f)
-                renpy.notify(f"📁 Archivo: {len(scenes)} escenas")
+                    content = f.read()
+                # Contar las líneas de label para estimar el número de escenas
+                label_count = content.count('label ')
+                renpy.notify(f"📁 Archivo RPY: {label_count} escenas encontradas")
             else:
-                renpy.notify("📁 Archivo: no existe")
+                renpy.notify("📁 Archivo RPY: no existe")
         except Exception as e:
             renpy.notify(f"❌ Error: {str(e)}")
     

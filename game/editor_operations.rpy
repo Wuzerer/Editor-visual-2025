@@ -10,36 +10,151 @@ init python:
     
     # Configuración del sistema
     PROJECTS_DIR = os.path.join(config.gamedir, "projects")
-    CURRENT_SCENES_FILE = "current_scenes.json"
+    CURRENT_SCENES_FILE = os.path.join(config.gamedir, "current_scenes.rpy")
+    SCENES_DIR = os.path.join(config.gamedir, "scenes")
     
-    # Asegurar que el directorio de proyectos existe
+    # Asegurar que los directorios existen
     if not os.path.exists(PROJECTS_DIR):
         os.makedirs(PROJECTS_DIR)
+    if not os.path.exists(SCENES_DIR):
+        os.makedirs(SCENES_DIR)
     
     # ===== FUNCIONES DE ARCHIVO BÁSICAS =====
     
     def save_scenes_to_file(scenes_list):
-        """Guarda las escenas directamente a un archivo JSON"""
+        """Guarda las escenas directamente a un archivo RPY"""
         try:
+            # Asegurar que el directorio existe
+            os.makedirs(os.path.dirname(CURRENT_SCENES_FILE), exist_ok=True)
+            
+            # Generar contenido RPY
+            rpy_content = generate_rpy_content(scenes_list)
+            
             with open(CURRENT_SCENES_FILE, 'w', encoding='utf-8') as f:
-                json.dump(scenes_list, f, ensure_ascii=False, indent=2)
+                f.write(rpy_content)
+            
+            print(f"✅ Escenas guardadas en: {CURRENT_SCENES_FILE}")
             return True
         except Exception as e:
             renpy.notify(f"❌ Error al guardar escenas: {str(e)}")
+            print(f"🔍 Debug: Error guardando en {CURRENT_SCENES_FILE}: {e}")
             return False
     
     def load_scenes_from_file():
-        """Carga las escenas desde el archivo JSON"""
+        """Carga las escenas desde el archivo RPY (simulado)"""
         try:
             if os.path.exists(CURRENT_SCENES_FILE):
-                with open(CURRENT_SCENES_FILE, 'r', encoding='utf-8') as f:
-                    scenes = json.load(f)
-                return scenes
+                # Por ahora, simulamos la carga ya que los archivos RPY se ejecutan
+                # En el futuro, podríamos parsear el archivo RPY para extraer las escenas
+                print(f"✅ Archivo RPY encontrado: {CURRENT_SCENES_FILE}")
+                return []  # Las escenas se ejecutan directamente
             else:
+                print(f"⚠️ Archivo no encontrado: {CURRENT_SCENES_FILE}")
                 return []
         except Exception as e:
             renpy.notify(f"❌ Error al cargar escenas: {str(e)}")
+            print(f"🔍 Debug: Error cargando desde {CURRENT_SCENES_FILE}: {e}")
             return []
+    
+    def generate_rpy_content(scenes_list):
+        """Genera el contenido del archivo RPY basado en las escenas"""
+        try:
+            content = []
+            content.append("# current_scenes.rpy")
+            content.append("# Archivo generado automáticamente por el Editor Visual")
+            content.append(f"# Generado el: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            content.append("")
+            
+            # Agregar cada escena
+            for i, scene in enumerate(scenes_list):
+                scene_type = scene.get('type', 'unknown')
+                
+                if scene_type == 'dialogue':
+                    content.extend(generate_dialogue_scene(scene, i))
+                elif scene_type == 'stage':
+                    content.extend(generate_stage_scene(scene, i))
+                elif scene_type == 'background':
+                    content.extend(generate_background_scene(scene, i))
+                else:
+                    content.extend(generate_unknown_scene(scene, i))
+                
+                content.append("")
+            
+            return "\n".join(content)
+            
+        except Exception as e:
+            print(f"❌ Error generando contenido RPY: {e}")
+            return "# Error generando contenido"
+    
+    def generate_dialogue_scene(scene, index):
+        """Genera código RPY para una escena de diálogo"""
+        lines = []
+        character = scene.get('character', 'Narrator')
+        dialogue = scene.get('dialogue', '')
+        xalign = scene.get('xalign', 0.5)
+        yalign = scene.get('yalign', 0.9)
+        
+        lines.append(f"# Escena {index + 1}: Diálogo")
+        lines.append(f"label scene_{index + 1}_dialogue:")
+        
+        # Agregar personaje si no es Narrator
+        if character.lower() != 'narrator':
+            lines.append(f"    {character.lower()} \"{dialogue}\"")
+        else:
+            lines.append(f"    \"{dialogue}\"")
+        
+        lines.append("    return")
+        return lines
+    
+    def generate_stage_scene(scene, index):
+        """Genera código RPY para una escena de stage"""
+        lines = []
+        background = scene.get('background', '')
+        characters = scene.get('characters', [])
+        transition = scene.get('transition', 'dissolve')
+        
+        lines.append(f"# Escena {index + 1}: Stage")
+        lines.append(f"label scene_{index + 1}_stage:")
+        
+        # Mostrar fondo
+        if background:
+            lines.append(f"    scene {background}")
+        
+        # Mostrar personajes
+        for char in characters:
+            if isinstance(char, dict):
+                char_name = char.get('name', '')
+                char_sprite = char.get('sprite', '')
+                char_pos = char.get('position', 'center')
+                if char_sprite:
+                    lines.append(f"    show {char_name} {char_sprite} at {char_pos}")
+        
+        lines.append("    return")
+        return lines
+    
+    def generate_background_scene(scene, index):
+        """Genera código RPY para una escena de fondo"""
+        lines = []
+        background = scene.get('background', '')
+        transition = scene.get('transition', 'dissolve')
+        
+        lines.append(f"# Escena {index + 1}: Fondo")
+        lines.append(f"label scene_{index + 1}_background:")
+        
+        if background:
+            lines.append(f"    scene {background} with {transition}")
+        
+        lines.append("    return")
+        return lines
+    
+    def generate_unknown_scene(scene, index):
+        """Genera código RPY para una escena desconocida"""
+        lines = []
+        lines.append(f"# Escena {index + 1}: Tipo desconocido")
+        lines.append(f"label scene_{index + 1}_unknown:")
+        lines.append(f"    # Tipo: {scene.get('type', 'unknown')}")
+        lines.append("    return")
+        return lines
     
     def get_current_scenes():
         """Obtiene las escenas actuales desde el archivo"""
@@ -59,18 +174,18 @@ init python:
     # ===== FUNCIONES DE LIMPIEZA SIN PANTALLA =====
     
     def clear_scenes_file_safe():
-        """Limpia SOLO el archivo, sin tocar la pantalla"""
+        """Limpia SOLO el archivo RPY, sin tocar la pantalla"""
         try:
             # Solo operaciones de archivo, nada de pantalla
             if os.path.exists(CURRENT_SCENES_FILE):
-                # Crear un archivo vacío directamente
-                empty_data = []
+                # Crear un archivo RPY vacío
+                empty_content = "# current_scenes.rpy\n# Archivo vacío\n"
                 with open(CURRENT_SCENES_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(empty_data, f, ensure_ascii=False, indent=2)
+                    f.write(empty_content)
                 
-                renpy.notify("🗑️ Archivo limpiado exitosamente")
+                renpy.notify("🗑️ Archivo RPY limpiado exitosamente")
             else:
-                renpy.notify("📝 Archivo no existe (ya está limpio)")
+                renpy.notify("📝 Archivo RPY no existe (ya está limpio)")
             
             return True
                 
@@ -96,7 +211,7 @@ init python:
     # ===== FUNCIONES DE AGREGADO SIN PANTALLA =====
     
     def add_dialogue_line_safe(scene_list, character, dialogue, xalign, yalign):
-        """Agrega una línea de diálogo al archivo y sincroniza pantalla"""
+        """Agrega una línea de diálogo al archivo RPY y sincroniza pantalla"""
         if dialogue.strip():
             # Crear la escena
             scene_data = {
@@ -107,26 +222,25 @@ init python:
                 'yalign': yalign
             }
             
-            # Cargar escenas existentes
+            # Cargar escenas existentes (simulado para RPY)
             scenes = []
             if os.path.exists(CURRENT_SCENES_FILE):
-                with open(CURRENT_SCENES_FILE, 'r', encoding='utf-8') as f:
-                    scenes = json.load(f)
+                # Por ahora, simulamos la carga ya que los archivos RPY se ejecutan directamente
+                scenes = []  # En el futuro, podríamos parsear el archivo RPY
             
             # Agregar nueva escena
             scenes.append(scene_data)
             
-            # Guardar al archivo
+            # Guardar al archivo RPY
             try:
-                with open(CURRENT_SCENES_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(scenes, f, ensure_ascii=False, indent=2)
+                save_scenes_to_file(scenes)
                 
                 # Sincronizar pantalla automáticamente
                 try:
                     renpy.set_screen_variable("current_scene", scenes)
-                    renpy.notify(f"✅ Línea agregada y sincronizada: {len(scenes)} escenas")
+                    renpy.notify(f"✅ Línea agregada al archivo RPY: {len(scenes)} escenas")
                 except Exception as sync_error:
-                    renpy.notify(f"✅ Línea agregada: {len(scenes)} escenas (sincronizar manualmente)")
+                    renpy.notify(f"✅ Línea agregada al archivo RPY: {len(scenes)} escenas")
                     renpy.notify(f"⚠️ Error de sincronización: {str(sync_error)}")
             except Exception as e:
                 renpy.notify(f"❌ Error al guardar: {str(e)}")
@@ -134,7 +248,7 @@ init python:
             renpy.notify("⚠️ Diálogo vacío, no se agregó")
     
     def add_stage_scene_safe(scene_list, background, characters, transition):
-        """Agrega una escena de stage al archivo y sincroniza pantalla"""
+        """Agrega una escena de stage al archivo RPY y sincroniza pantalla"""
         # Crear la escena
         scene_data = {
             'type': 'stage',
@@ -143,26 +257,25 @@ init python:
             'transition': transition
         }
         
-        # Cargar escenas existentes
+        # Cargar escenas existentes (simulado para RPY)
         scenes = []
         if os.path.exists(CURRENT_SCENES_FILE):
-            with open(CURRENT_SCENES_FILE, 'r', encoding='utf-8') as f:
-                scenes = json.load(f)
+            # Por ahora, simulamos la carga ya que los archivos RPY se ejecutan directamente
+            scenes = []  # En el futuro, podríamos parsear el archivo RPY
         
         # Agregar nueva escena
         scenes.append(scene_data)
         
-        # Guardar al archivo
+        # Guardar al archivo RPY
         try:
-            with open(CURRENT_SCENES_FILE, 'w', encoding='utf-8') as f:
-                json.dump(scenes, f, ensure_ascii=False, indent=2)
+            save_scenes_to_file(scenes)
             
             # Sincronizar pantalla automáticamente
             try:
                 renpy.set_screen_variable("current_scene", scenes)
-                renpy.notify(f"✅ Escena agregada y sincronizada: {len(scenes)} escenas")
+                renpy.notify(f"✅ Escena de stage agregada al archivo RPY: {len(scenes)} escenas")
             except Exception as sync_error:
-                renpy.notify(f"✅ Escena agregada: {len(scenes)} escenas (sincronizar manualmente)")
+                renpy.notify(f"✅ Escena de stage agregada al archivo RPY: {len(scenes)} escenas")
                 renpy.notify(f"⚠️ Error de sincronización: {str(sync_error)}")
         except Exception as e:
             renpy.notify(f"❌ Error al guardar: {str(e)}")
@@ -371,3 +484,156 @@ init python:
         except Exception as e:
             renpy.notify(f"❌ Error en sincronización: {str(e)}")
             return False
+    
+    def execute_generated_scenes():
+        """Ejecuta las escenas generadas en el archivo RPY"""
+        try:
+            if os.path.exists(CURRENT_SCENES_FILE):
+                # El archivo RPY se ejecutará automáticamente cuando Ren'Py lo detecte
+                renpy.notify("🎬 Archivo RPY generado - las escenas están listas para ejecutar")
+                return True
+            else:
+                renpy.notify("⚠️ No hay archivo RPY para ejecutar")
+                return False
+        except Exception as e:
+            renpy.notify(f"❌ Error ejecutando escenas: {str(e)}")
+            return False
+    
+    def create_sample_scene():
+        """Crea una escena de ejemplo para probar el sistema RPY"""
+        try:
+            sample_scenes = [
+                {
+                    'type': 'dialogue',
+                    'character': 'Eileen',
+                    'dialogue': '¡Hola! Esta es una escena generada automáticamente.',
+                    'xalign': 0.5,
+                    'yalign': 0.9
+                },
+                {
+                    'type': 'dialogue',
+                    'character': 'Narrator',
+                    'dialogue': 'El sistema está funcionando correctamente.',
+                    'xalign': 0.5,
+                    'yalign': 0.9
+                },
+                {
+                    'type': 'background',
+                    'background': 'bg room',
+                    'transition': 'dissolve'
+                }
+            ]
+            
+            save_scenes_to_file(sample_scenes)
+            renpy.notify("✅ Escena de ejemplo creada en archivo RPY")
+            return True
+        except Exception as e:
+            renpy.notify(f"❌ Error creando escena de ejemplo: {str(e)}")
+            return False
+    
+    def diagnose_paths():
+        """Diagnóstico de rutas para verificar que todo esté correcto"""
+        try:
+            print("🔍 DIAGNÓSTICO DE RUTAS:")
+            print(f"• config.gamedir: {config.gamedir}")
+            print(f"• PROJECTS_DIR: {PROJECTS_DIR}")
+            print(f"• CURRENT_SCENES_FILE: {CURRENT_SCENES_FILE}")
+            print(f"• SCENES_DIR: {SCENES_DIR}")
+            
+            # Verificar si los directorios existen
+            if os.path.exists(config.gamedir):
+                print(f"✅ config.gamedir existe")
+            else:
+                print(f"❌ config.gamedir NO existe")
+            
+            if os.path.exists(PROJECTS_DIR):
+                print(f"✅ PROJECTS_DIR existe")
+            else:
+                print(f"⚠️ PROJECTS_DIR NO existe (se creará automáticamente)")
+            
+            if os.path.exists(SCENES_DIR):
+                print(f"✅ SCENES_DIR existe")
+            else:
+                print(f"⚠️ SCENES_DIR NO existe (se creará automáticamente)")
+            
+            if os.path.exists(CURRENT_SCENES_FILE):
+                print(f"✅ CURRENT_SCENES_FILE existe")
+            else:
+                print(f"⚠️ CURRENT_SCENES_FILE NO existe (se creará automáticamente)")
+            
+            # Verificar permisos de escritura
+            try:
+                test_file = os.path.join(config.gamedir, "test_write.tmp")
+                with open(test_file, 'w') as f:
+                    f.write("test")
+                os.remove(test_file)
+                print(f"✅ Permisos de escritura OK")
+            except Exception as e:
+                print(f"❌ Error de permisos: {e}")
+            
+            return True
+        except Exception as e:
+            print(f"❌ Error en diagnóstico: {e}")
+            return False
+    
+    # Ejecutar diagnóstico al inicializar
+    diagnose_paths()
+    
+    def test_rpy_generation():
+        """Prueba la generación de archivos RPY"""
+        try:
+            print("🧪 PROBANDO GENERACIÓN DE ARCHIVO RPY")
+            
+            # Crear escenas de prueba
+            test_scenes = [
+                {
+                    'type': 'dialogue',
+                    'character': 'Eileen',
+                    'dialogue': '¡Hola! Esta es una prueba del sistema RPY.',
+                    'xalign': 0.5,
+                    'yalign': 0.9
+                },
+                {
+                    'type': 'dialogue',
+                    'character': 'Narrator',
+                    'dialogue': 'El archivo RPY se ha generado correctamente.',
+                    'xalign': 0.5,
+                    'yalign': 0.9
+                },
+                {
+                    'type': 'background',
+                    'background': 'bg room',
+                    'transition': 'dissolve'
+                }
+            ]
+            
+            # Generar el archivo RPY
+            success = save_scenes_to_file(test_scenes)
+            
+            if success:
+                print("✅ Archivo RPY generado exitosamente")
+                
+                # Verificar que el archivo existe
+                if os.path.exists(CURRENT_SCENES_FILE):
+                    print(f"✅ Archivo creado en: {CURRENT_SCENES_FILE}")
+                    
+                    # Leer y mostrar el contenido
+                    with open(CURRENT_SCENES_FILE, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    print("📝 Contenido del archivo RPY:")
+                    print(content[:500] + "..." if len(content) > 500 else content)
+                else:
+                    print("❌ El archivo no se creó")
+            else:
+                print("❌ Error generando archivo RPY")
+            
+            return success
+            
+        except Exception as e:
+            print(f"❌ Error en prueba RPY: {e}")
+            return False
+    
+    # Ejecutar prueba de generación RPY
+    test_rpy_generation()
+    
+    print("✅ Editor Operations inicializado con sistema RPY")

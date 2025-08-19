@@ -36,6 +36,11 @@ transform enter_from_bottom:
 
 # Asegurar que visual_layout tenga todos los atributos necesarios antes de definir la pantalla
 init python:
+    # Variables globales para el editor de escenas
+    new_scene_name = ""
+    scene_name_active = False
+    created_scenes_modal_global = []
+    
     def ensure_visual_layout_attributes():
         """Asegura que visual_layout tenga todos los atributos necesarios para la pantalla"""
         try:
@@ -312,12 +317,18 @@ init python:
             renpy.notify(f"❌ Error seleccionando fondo de color: {e}")
     
     def add_default_background_to_scene():
-        """Agrega el fondo predeterminado seleccionado a la escena"""
+        """Agrega el fondo predeterminado seleccionado a la escena actual"""
         try:
             selected_bg = renpy.get_screen_variable("selected_background_global")
             
             if not selected_bg:
                 renpy.notify("⚠️ No hay fondo seleccionado")
+                return
+            
+            # Verificar que haya una escena actual seleccionada
+            current_scene_name = renpy.get_screen_variable("current_scene_name")
+            if not current_scene_name:
+                renpy.notify("⚠️ Primero crea o selecciona una escena")
                 return
             
             # Mapeo de nombres de colores a códigos hexadecimales
@@ -343,7 +354,8 @@ init python:
                     'type': 'background',
                     'background': selected_bg,
                     'color_code': color_map[selected_bg],
-                    'transition': 'dissolve'
+                    'transition': 'dissolve',
+                    'scene_name': current_scene_name  # Agregar referencia a la escena
                 }
                 
                 # Agregar a la lista de escenas actuales
@@ -354,13 +366,68 @@ init python:
                 current_scenes.append(background_scene)
                 renpy.set_screen_variable("current_scenes", current_scenes)
                 
-                renpy.notify(f"✅ Fondo de color agregado: {selected_bg}")
+                # Actualizar la escena en el diccionario de todas las escenas
+                all_scenes = get_all_scenes_safe()
+                all_scenes[current_scene_name] = current_scenes.copy()
+                renpy.set_screen_variable("all_scenes", all_scenes)
+                
+                renpy.notify(f"✅ Fondo de color agregado a escena '{current_scene_name}': {selected_bg}")
             else:
                 # Si no es un color predeterminado, usar la función normal
                 add_background_to_scene()
                 
         except Exception as e:
             renpy.notify(f"❌ Error agregando fondo predeterminado: {e}")
+    
+    def organize_scenes_by_current():
+        """Organiza la lista de escenas para mostrar solo las de la escena actual"""
+        try:
+            current_scene_name = renpy.get_screen_variable("current_scene_name")
+            if not current_scene_name:
+                # Si no hay escena actual, limpiar la lista
+                renpy.set_screen_variable("current_scenes", [])
+                return
+            
+            # Obtener todas las escenas
+            all_scenes = get_all_scenes_safe()
+            
+            # Obtener las escenas de la escena actual
+            if current_scene_name in all_scenes:
+                current_scenes = all_scenes[current_scene_name]
+                renpy.set_screen_variable("current_scenes", current_scenes)
+                renpy.notify(f"📋 Organizando escena: '{current_scene_name}' ({len(current_scenes)} elementos)")
+            else:
+                # Si la escena no existe, crear una nueva lista vacía
+                renpy.set_screen_variable("current_scenes", [])
+                renpy.notify(f"📋 Nueva escena creada: '{current_scene_name}'")
+                
+        except Exception as e:
+            renpy.notify(f"❌ Error organizando escenas: {e}")
+    
+    def filter_scenes_by_current():
+        """Filtra la lista de escenas para mostrar solo las de la escena actual"""
+        try:
+            current_scene_name = renpy.get_screen_variable("current_scene_name")
+            if not current_scene_name:
+                return []
+            
+            current_scenes = renpy.get_screen_variable("current_scenes")
+            if current_scenes is None:
+                return []
+            
+            # Filtrar solo las escenas que pertenecen a la escena actual
+            filtered_scenes = []
+            for scene in current_scenes:
+                if scene.get('scene_name') == current_scene_name or 'scene_name' not in scene:
+                    # Si no tiene scene_name, asumir que pertenece a la escena actual
+                    scene['scene_name'] = current_scene_name
+                    filtered_scenes.append(scene)
+            
+            return filtered_scenes
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error filtrando escenas: {e}")
+            return []
     
     def open_custom_color_picker():
         """Abre el selector de color personalizado"""
@@ -719,8 +786,17 @@ screen visual_editor():
                                             spacing 5
                                             
                                             # Contador de escenas
-                                            if current_scenes:
-                                                text f"📋 {len(current_scenes)} escenas" color "#f39c12" size text_sizes.text_small
+                                            $ current_scene_name = renpy.get_screen_variable("current_scene_name")
+                                            $ filtered_scenes = filter_scenes_by_current()
+                                            
+                                            if current_scene_name:
+                                                text f"🎬 {current_scene_name}" color "#f39c12" size text_sizes.text_small bold True
+                                                if filtered_scenes:
+                                                    text f"📋 {len(filtered_scenes)} elementos" color "#27ae60" size text_sizes.text_small
+                                                else:
+                                                    text "📋 Sin elementos" color "#95a5a6" size text_sizes.text_small
+                                            else:
+                                                text "⚠️ Sin escena seleccionada" color "#e74c3c" size text_sizes.text_small
                                             
                                             # Estado del fondo
                                             if selected_background_global:
@@ -776,10 +852,13 @@ screen visual_editor():
                                     text "📋 Lista de Escenas" color "#ffffff" size text_sizes.title_medium
                                     
                                     # Contador de escenas
-                                    if current_scenes:
-                                        text f"({len(current_scenes)} escenas)" color "#f39c12" size text_sizes.text_medium
+                                    $ current_scene_name = renpy.get_screen_variable("current_scene_name")
+                                    $ filtered_scenes = filter_scenes_by_current()
+                                    
+                                    if current_scene_name:
+                                        text f"({current_scene_name}: {len(filtered_scenes)} elementos)" color "#f39c12" size text_sizes.text_medium
                                     else:
-                                        text "(Sin escenas)" color "#95a5a6" size text_sizes.text_medium
+                                        text "(Sin escena seleccionada)" color "#e74c3c" size text_sizes.text_medium
                                     
                                     # Botones de gestión de escenas
                                     hbox:
@@ -789,8 +868,11 @@ screen visual_editor():
                                         # Botón para crear nueva escena - USANDO INPUT DIRECTO CONFIABLE
                                         textbutton "➕ Nueva Escena" action Show("new_scene_modal") background "#27ae60" hover_background "#2ecc71" text_color "#ffffff" text_hover_color "#ffffff" text_size text_sizes.text_small
                                         
+                                        # Botón para organizar escenas por escena actual
+                                        textbutton "📋 Organizar Escenas" action Function(organize_scenes_by_current) background "#f39c12" hover_background "#e67e22" text_color "#ffffff" text_hover_color "#ffffff" text_size text_sizes.text_small
+                                        
                                         # Botón alternativo con modal (para probar)
-                                        textbutton "🎭 Nueva Escena (Modal)" action Show("simple_create_scene") background "#8e44ad" hover_background "#9b59b6" text_color "#ffffff" text_hover_color "#ffffff" text_size text_sizes.text_small
+                                        # textbutton "🎭 Nueva Escena (Modal)" action Show("simple_create_scene") background "#8e44ad" hover_background "#9b59b6" text_color "#ffffff" text_hover_color "#ffffff" text_size text_sizes.text_small
                             
 
                             
@@ -825,7 +907,7 @@ screen visual_editor():
                                             
                                             # Botones de acción
                                             textbutton "💾 Guardar" action Function(save_current_scene) background "#3498db" hover_background "#2980b9" text_color "#ffffff" text_hover_color "#ffffff" text_size text_sizes.text_small
-                                            textbutton "🗑️ Eliminar" action Function(delete_scene) background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size text_sizes.text_small
+                                            textbutton "🗑️ Eliminar" action Function(delete_scene_by_name) background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size text_sizes.text_small
                                         
                                         # Escena actual
                                         if current_scene_name:
@@ -871,8 +953,10 @@ screen visual_editor():
                                         spacing 8
                                         xfill True
                                         
-                                        if current_scenes:
-                                            for i, scene in enumerate(current_scenes):
+                                        # Obtener las escenas filtradas de la escena actual
+                                        $ filtered_scenes = filter_scenes_by_current()
+                                        if filtered_scenes:
+                                            for i, scene in enumerate(filtered_scenes):
                                                 # Tarjeta de escena mejorada
                                                 frame:
                                                     xfill True
@@ -4435,6 +4519,12 @@ init python:
             bg_selected = renpy.get_screen_variable("selected_background_global")
             scenes = renpy.get_screen_variable("current_scenes")
             bg_transition = renpy.get_screen_variable("background_transition")
+            current_scene_name = renpy.get_screen_variable("current_scene_name")
+            
+            # Verificar que haya una escena actual seleccionada
+            if not current_scene_name:
+                renpy.notify("⚠️ Primero crea o selecciona una escena")
+                return
             
             # Si scenes es None, inicializar como lista vacía
             if scenes is None:
@@ -4445,13 +4535,20 @@ init python:
                     'type': 'background',
                     'background': bg_selected,
                     'transition': bg_transition or 'dissolve',
-                    'timestamp': datetime.now().isoformat()
+                    'timestamp': datetime.now().isoformat(),
+                    'scene_name': current_scene_name  # Agregar referencia a la escena
                 }
                 scenes.append(scene_data)
                 renpy.set_screen_variable("current_scenes", scenes)
+                
+                # Actualizar la escena en el diccionario de todas las escenas
+                all_scenes = get_all_scenes_safe()
+                all_scenes[current_scene_name] = scenes.copy()
+                renpy.set_screen_variable("all_scenes", all_scenes)
+                
                 # Actualización simple del viewport
                 simple_viewport_refresh()
-                renpy.notify(f"✅ Fondo '{bg_selected}' agregado a la escena con transición '{bg_transition or 'dissolve'}'")
+                renpy.notify(f"✅ Fondo '{bg_selected}' agregado a escena '{current_scene_name}' con transición '{bg_transition or 'dissolve'}'")
             else:
                 renpy.notify("⚠️ Selecciona un fondo primero")
         except Exception as e:
@@ -4466,8 +4563,14 @@ init python:
             position = renpy.get_screen_variable("sprite_position")
             scenes = renpy.get_screen_variable("current_scenes")
             char_transition = renpy.get_screen_variable("character_transition")
+            current_scene_name = renpy.get_screen_variable("current_scene_name")
             
-            # Si scenes es None, inicializar como lista vacía
+            # Verificar que haya una escena actual seleccionada
+            if not current_scene_name:
+                renpy.notify("⚠️ Primero crea o selecciona una escena")
+                return
+            
+            # Si scenes is None, inicializar como lista vacía
             if scenes is None:
                 scenes = []
             
@@ -4478,13 +4581,20 @@ init python:
                     'expression': expression or 'happy',
                     'position': position or 'center',
                     'transition': char_transition or 'dissolve',
-                    'timestamp': datetime.now().isoformat()
+                    'timestamp': datetime.now().isoformat(),
+                    'scene_name': current_scene_name  # Agregar referencia a la escena
                 }
                 scenes.append(scene_data)
                 renpy.set_screen_variable("current_scenes", scenes)
+                
+                # Actualizar la escena en el diccionario de todas las escenas
+                all_scenes = get_all_scenes_safe()
+                all_scenes[current_scene_name] = scenes.copy()
+                renpy.set_screen_variable("all_scenes", all_scenes)
+                
                 # Actualización simple del viewport
                 simple_viewport_refresh()
-                renpy.notify(f"✅ Personaje '{character}' agregado a la escena con transición '{char_transition or 'dissolve'}'")
+                renpy.notify(f"✅ Personaje '{character}' agregado a escena '{current_scene_name}' con transición '{char_transition or 'dissolve'}'")
             else:
                 renpy.notify("⚠️ Selecciona un personaje primero")
         except Exception as e:
@@ -4523,10 +4633,17 @@ init python:
                 # Determinar si es narrador y aplicar configuración especial
                 is_narrator = character_to_use == 'Narrator' or character_to_use == 'narrator'
                 
+                # Obtener el nombre de la escena actual
+                current_scene_name = renpy.get_screen_variable("current_scene_name")
+                if not current_scene_name:
+                    renpy.notify("⚠️ Primero crea o selecciona una escena")
+                    return
+                
                 scene_data = {
                     'type': 'dialogue',
                     'character': character_to_use,
                     'dialogue': dialogue.strip(),
+                    'scene_name': current_scene_name,  # Agregar referencia a la escena
                     'transition': char_transition or 'dissolve',
                     'timestamp': datetime.now().isoformat()
                 }
@@ -4541,10 +4658,16 @@ init python:
                     })
                 scenes.append(scene_data)
                 renpy.set_screen_variable("current_scenes", scenes)
+                
+                # Actualizar la escena en el diccionario de todas las escenas
+                all_scenes = get_all_scenes_safe()
+                all_scenes[current_scene_name] = scenes.copy()
+                renpy.set_screen_variable("all_scenes", all_scenes)
+                
                 renpy.set_screen_variable("dialogue_text", "")  # Limpiar el campo
                 # Actualización simple del viewport
                 simple_viewport_refresh()
-                renpy.notify(f"✅ Diálogo agregado: {character_to_use} con transición '{char_transition or 'dissolve'}'")
+                renpy.notify(f"✅ Diálogo agregado a escena '{current_scene_name}': {character_to_use} con transición '{char_transition or 'dissolve'}'")
             else:
                 renpy.notify("⚠️ Escribe un diálogo primero")
         except Exception as e:
@@ -4714,7 +4837,10 @@ init python:
                 saved_scenes = get_all_scenes_safe()
                 print(f"🔍 Debug: Escenas después de crear '{scene_name}': {list(saved_scenes.keys())}")
                 
-                renpy.notify(f"✅ Nueva escena '{scene_name}' creada")
+                # Organizar automáticamente las escenas para la nueva escena
+                organize_scenes_by_current()
+                
+                renpy.notify(f"✅ Nueva escena '{scene_name}' creada y organizada")
             else:
                 renpy.notify("⚠️ Ingresa un nombre para la escena")
         except Exception as e:
@@ -4737,7 +4863,10 @@ init python:
                     # Debug: verificar que se cargó correctamente
                     print(f"🔍 Debug: Cargando escena '{scene_name}' con {len(all_scenes[scene_name])} elementos")
                     
-                    renpy.notify(f"📝 Editando escena: '{scene_name}'")
+                    # Organizar automáticamente las escenas para la escena seleccionada
+                    organize_scenes_by_current()
+                    
+                    renpy.notify(f"📝 Editando escena: '{scene_name}' - Organizada")
                 else:
                     renpy.notify("⚠️ Escena no encontrada")
                     print(f"🔍 Debug: Escena '{scene_name}' no encontrada en {list(all_scenes.keys())}")
@@ -4770,8 +4899,8 @@ init python:
             renpy.notify(f"❌ Error guardando escena: {e}")
             print(f"🔍 Debug: Error completo: {e}")
     
-    def delete_scene():
-        """Elimina una escena del diccionario"""
+    def delete_scene_by_name():
+        """Elimina una escena del diccionario por nombre"""
         try:
             scene_name = renpy.get_screen_variable("selected_scene_to_edit")
             if scene_name:
@@ -6561,7 +6690,7 @@ screen new_scene_modal():
                                     
                                     if scene_name_active and scene_name_active is not None:
                                         input:
-                                            value ScreenVariableInputValue("new_scene_name")
+                                            value FieldInputValue(renpy.store, "new_scene_name")
                                             xfill True
                                             yfill True
                                             color "#ffffff"
@@ -6622,7 +6751,7 @@ screen new_scene_modal():
                         xfill True
                         
                         text "💡 Sugerencia: Usa nombres descriptivos como 'Introducción', 'Capítulo 1', etc." color "#bdc3c7" size 14 xalign 0.5
-                        text "✏️ Haz clic en 'Editar Nombre' para escribir el nombre de la escena" color "#f39c12" size 12 xalign 0.5
+                        text "📝 PASOS: 1) Editar Nombre → 2) Escribir → 3) Aceptar → 4) Crear Escena" color "#f39c12" size 12 xalign 0.5
                 
                 # Botones de acción
                 hbox:
@@ -6639,99 +6768,350 @@ screen new_scene_modal():
                     textbutton "❌ Cancelar" action Function(cancel_modal_scenes) background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size 15 xsize 120 ysize 25
 
 init python:
-    def activate_scene_name_edit():
-        """Activa el campo de edición del nombre de la escena (siguiendo el patrón de choice)"""
-        try:
-            renpy.set_screen_variable("scene_name_active", True)
-            renpy.notify("✏️ Campo de nombre activado - puedes editar")
-        except Exception as e:
-            renpy.notify(f"❌ Error activando edición: {e}")
-            print(f"🔍 Debug: Error en activate_scene_name_edit: {e}")
+    # ===== SISTEMA HÍBRIDO MCKEE-ROTHAMEL PARA CREACIÓN DE ESCENAS =====
     
-    def accept_scene_name():
-        """Acepta y guarda el nombre de la escena (siguiendo el patrón de choice)"""
-        try:
-            renpy.set_screen_variable("scene_name_active", False)
-            renpy.notify("✅ Nombre guardado")
-        except Exception as e:
-            renpy.notify(f"❌ Error guardando nombre: {e}")
-            print(f"🔍 Debug: Error en accept_scene_name: {e}")
-
-    def add_scene_to_modal():
-        """Agrega una escena a la lista de escenas creadas en la modal (siguiendo el patrón de otras funciones)"""
-        try:
-            # Obtener el nombre de la escena de forma segura
-            scene_name = renpy.get_screen_variable("new_scene_name", "")
-            
-            # Limpiar espacios extra y verificar que no esté vacío
-            if scene_name and scene_name.strip():
-                scene_name = scene_name.strip()
-                
-                # Obtener la lista de escenas creadas en la modal (con fallback)
-                try:
-                    created_scenes = renpy.get_screen_variable("created_scenes_in_modal")
-                except:
-                    created_scenes = []
-                
-                # Si created_scenes es None, inicializar como lista vacía
-                if created_scenes is None:
-                    created_scenes = []
-                
-                # Verificar si ya existe en la lista de la modal
-                if scene_name in created_scenes:
-                    renpy.notify("⚠️ Ya has creado una escena con ese nombre en esta sesión")
-                    return
-                
-                # Agregar a la lista de escenas creadas en la modal
-                created_scenes.append(scene_name)
-                
-                # Actualizar la variable de pantalla de forma segura
-                try:
-                    renpy.set_screen_variable("created_scenes_in_modal", created_scenes)
-                except:
-                    # Fallback: usar variable global
-                    if not hasattr(renpy.store, 'created_scenes_modal_global'):
-                        renpy.store.created_scenes_modal_global = []
-                    renpy.store.created_scenes_modal_global = created_scenes
-                
-                # Limpiar el campo de entrada para la siguiente escena
-                try:
-                    renpy.set_screen_variable("new_scene_name", "")
-                    renpy.set_screen_variable("scene_name_active", False)
-                except:
-                    pass  # Si no se puede limpiar, continuar
-                
-                # Notificar éxito
-                renpy.notify(f"✅ Escena '{scene_name}' agregada a la lista")
-                
-            else:
-                renpy.notify("⚠️ Ingresa un nombre válido para la escena")
-                
-        except Exception as e:
-            renpy.notify(f"❌ Error agregando escena: {e}")
-            print(f"🔍 Debug: Error completo en add_scene_to_modal: {e}")
-    
-    def accept_modal_scenes():
-        """Acepta todas las escenas creadas en la modal y las guarda permanentemente"""
-        try:
-            # Obtener las escenas creadas en la modal de forma segura
+    class SceneCreationState:
+        """Estado simple pero robusto para la creación de escenas (Enfoque Rothamel)"""
+        
+        def __init__(self):
+            self.ready = False
+            self.error_count = 0
+            self.last_error_time = 0
+        
+        def can_create_scene(self):
+            """Verificación simple pero efectiva"""
+            return (
+                self.ready and 
+                self.error_count < 3 and
+                self._is_modal_accessible()
+            )
+        
+        def mark_ready(self):
+            """Transición de estado clara"""
+            self.ready = True
+            self.error_count = 0
+        
+        def mark_error(self):
+            """Registra un error y ajusta el estado"""
+            self.error_count += 1
+            self.last_error_time = renpy.get_game_runtime()
+        
+        def _is_modal_accessible(self):
+            """Verifica si la modal está accesible de forma segura"""
             try:
-                created_scenes = renpy.get_screen_variable("created_scenes_in_modal")
+                # Verificar si la pantalla está activa
+                return renpy.get_screen_variable("new_scene_name", None) is not None
             except:
-                # Fallback: usar variable global
-                if hasattr(renpy.store, 'created_scenes_modal_global'):
-                    created_scenes = renpy.store.created_scenes_modal_global
-                else:
-                    created_scenes = []
+                return False
+    
+    # Instancia global del estado de creación
+    scene_creation_state = SceneCreationState()
+    
+    def create_clear_notification(message_type, details=""):
+        """Notificaciones que informan sin abrumar (Enfoque McKee)"""
+        messages = {
+            "ready": "✅ Listo para crear escenas",
+            "waiting": "⏳ Preparando el editor...",
+            "success": f"🎬 {details}",
+            "error": f"⚠️ {details} - intenta de nuevo",
+            "validation": f"📝 {details}",
+            "conflict": f"⚡ {details}"
+        }
+        return messages.get(message_type, details)
+    
+    def get_scene_name_safely():
+        """Obtiene el nombre de forma segura, con fallbacks claros (Enfoque Rothamel)"""
+        try:
+            # Intento principal: variable global (más confiable)
+            scene_name = getattr(renpy.store, 'new_scene_name', "")
+            if scene_name and scene_name.strip():
+                print(f"🔍 Debug: Usando variable global: '{scene_name.strip()}'")
+                return scene_name.strip()
+        except Exception as e:
+            print(f"🔍 Debug: Error obteniendo variable global: {e}")
+        
+        try:
+            # Fallback 1: variable de pantalla
+            scene_name = renpy.get_screen_variable("new_scene_name", "")
+            if scene_name and scene_name.strip():
+                print(f"🔍 Debug: Usando variable de pantalla: '{scene_name.strip()}'")
+                return scene_name.strip()
+        except Exception as e:
+            print(f"🔍 Debug: Error obteniendo variable de pantalla: {e}")
+        
+        try:
+            # Fallback 2: Variable global alternativa
+            scene_name = getattr(renpy.store, 'new_scene_name_global', "")
+            if scene_name and scene_name.strip():
+                print(f"🔍 Debug: Usando fallback global: '{scene_name.strip()}'")
+                return scene_name.strip()
+        except Exception as e:
+            print(f"🔍 Debug: Error en fallback global: {e}")
+            pass
+        
+        # Fallback 2: Verificar si el campo está activo pero vacío
+        try:
+            scene_name_active = renpy.get_screen_variable("scene_name_active", False)
+            print(f"🔍 Debug: Fallback 2 - scene_name_active: {scene_name_active} (tipo: {type(scene_name_active)})")
             
-            # Si created_scenes es None, inicializar como lista vacía
+            # Verificar que scene_name_active sea un booleano válido
+            if isinstance(scene_name_active, bool) and scene_name_active:
+                # Si está activo, dar una segunda oportunidad
+                scene_name = renpy.get_screen_variable("new_scene_name", "")
+                print(f"🔍 Debug: Fallback 2 - segunda oportunidad: '{scene_name}' (tipo: {type(scene_name)})")
+                if scene_name and scene_name.strip():
+                    return scene_name.strip()
+            else:
+                print(f"🔍 Debug: Fallback 2 - scene_name_active no es True: {scene_name_active}")
+        except Exception as e:
+            print(f"🔍 Debug: Error en fallback 2: {e}")
+            pass
+        
+        # Fallback 3: Valor por defecto con mensaje de debug
+        print(f"🔍 Debug: No se pudo obtener nombre de escena, devolviendo vacío")
+        return ""
+    
+    def validate_scene_name(name):
+        """Validación que cuenta una historia (Enfoque McKee)"""
+        print(f"🔍 Debug: Validando nombre: '{name}' (tipo: {type(name)})")
+        
+        if not name:
+            print(f"🔍 Debug: Nombre es None o vacío")
+            return False, "El nombre está vacío"
+        
+        if not name.strip():
+            print(f"🔍 Debug: Nombre solo contiene espacios")
+            return False, "El nombre está vacío"
+        
+        if len(name.strip()) > 50:
+            print(f"🔍 Debug: Nombre demasiado largo: {len(name.strip())} caracteres")
+            return False, "El nombre es demasiado largo (máximo 50 caracteres)"
+        
+        # Verificar si ya existe en la sesión actual
+        try:
+            created_scenes = renpy.get_screen_variable("created_scenes_in_modal", [])
+            if created_scenes and name.strip() in created_scenes:
+                print(f"🔍 Debug: Nombre ya existe en la sesión")
+                return False, "Ya existe una escena con ese nombre en esta sesión"
+        except:
+            pass
+        
+        print(f"🔍 Debug: Nombre válido: '{name.strip()}'")
+        return True, "Nombre válido"
+    
+    def is_modal_ready():
+        """Verificación de estado simple pero efectiva"""
+        try:
+            # Verificar si la pantalla modal está activa
+            test_var = renpy.get_screen_variable("new_scene_name", None)
+            return test_var is not None
+        except:
+            return False
+    
+    def get_created_scenes_safely():
+        """Obtiene la lista de escenas creadas de forma segura"""
+        try:
+            created_scenes = renpy.get_screen_variable("created_scenes_in_modal")
             if created_scenes is None:
                 created_scenes = []
+            return created_scenes
+        except:
+            # Fallback: variable global
+            if hasattr(renpy.store, 'created_scenes_modal_global'):
+                return renpy.store.created_scenes_modal_global
+            return []
+    
+    def update_created_scenes_safely(created_scenes):
+        """Actualiza la lista de escenas de forma segura"""
+        try:
+            renpy.set_screen_variable("created_scenes_in_modal", created_scenes)
+        except:
+            # Fallback: variable global
+            renpy.store.created_scenes_modal_global = created_scenes
+    
+    def clear_scene_input_safely():
+        """Limpia el campo de entrada de forma segura"""
+        try:
+            renpy.set_screen_variable("new_scene_name", "")
+            renpy.set_screen_variable("scene_name_active", False)
+            print(f"🔍 Debug: Campo limpiado exitosamente")
+        except Exception as e:
+            print(f"🔍 Debug: Error limpiando campo: {e}")
+            # Fallback: limpiar variables globales
+            try:
+                renpy.store.new_scene_name_global = ""
+                renpy.store.scene_name_active_global = False
+                print(f"🔍 Debug: Variables globales limpiadas como fallback")
+            except:
+                print(f"🔍 Debug: Fallback de limpieza también falló")
+    
+    def sync_scene_variables():
+        """Sincroniza las variables de pantalla con las globales"""
+        try:
+            # Sincronizar new_scene_name desde pantalla a global
+            try:
+                screen_name = renpy.get_screen_variable("new_scene_name", "")
+                renpy.store.new_scene_name = screen_name
+                renpy.store.new_scene_name_global = screen_name
+                print(f"🔍 Debug: new_scene_name sincronizado desde pantalla: '{screen_name}'")
+            except Exception as e:
+                print(f"🔍 Debug: Error sincronizando new_scene_name desde pantalla: {e}")
             
-            if not created_scenes:
-                renpy.notify("⚠️ No hay escenas para guardar")
-                return
+            # Sincronizar scene_name_active
+            try:
+                screen_active = renpy.get_screen_variable("scene_name_active", False)
+                renpy.store.scene_name_active = screen_active
+                renpy.store.scene_name_active_global = screen_active
+                print(f"🔍 Debug: scene_name_active sincronizado desde pantalla: {screen_active}")
+            except Exception as e:
+                print(f"🔍 Debug: Error sincronizando scene_name_active desde pantalla: {e}")
             
+            # Sincronizar desde global a pantalla (si es necesario)
+            try:
+                global_name = getattr(renpy.store, 'new_scene_name', "")
+                if global_name and global_name.strip():
+                    renpy.set_screen_variable("new_scene_name", global_name)
+                    print(f"🔍 Debug: new_scene_name sincronizado desde global: '{global_name}'")
+            except Exception as e:
+                print(f"🔍 Debug: Error sincronizando new_scene_name desde global: {e}")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error en sincronización: {e}")
+    
+    def activate_scene_name_edit():
+        """Activa el campo de edición del nombre de la escena"""
+        try:
+            print(f"🔍 Debug: Activando edición del nombre...")
+            
+            # Activar el campo de forma segura
+            try:
+                renpy.set_screen_variable("scene_name_active", True)
+                renpy.store.scene_name_active = True
+                renpy.store.scene_name_active_global = True
+                print(f"🔍 Debug: Campo activado, scene_name_active = True (pantalla y global)")
+            except Exception as e:
+                print(f"🔍 Debug: Error activando campo: {e}")
+                # Fallback: usar variable global
+                try:
+                    renpy.store.scene_name_active = True
+                    renpy.store.scene_name_active_global = True
+                    print(f"🔍 Debug: Usando fallback global para activar campo")
+                except:
+                    print(f"🔍 Debug: Fallback global también falló")
+                    renpy.notify(create_clear_notification("error", "Error activando edición"))
+                    return
+            
+            renpy.notify("✏️ Campo de nombre activado - escribe el nombre y haz clic en 'Aceptar'")
+            print(f"🔍 Debug: Activación completada exitosamente")
+            
+            # Sincronizar variables
+            sync_scene_variables()
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error en activate_scene_name_edit: {e}")
+            renpy.notify(create_clear_notification("error", "Error activando edición"))
+    
+    def accept_scene_name():
+        """Acepta y guarda el nombre de la escena"""
+        try:
+            print(f"🔍 Debug: Aceptando nombre de escena...")
+            
+            # Obtener el nombre actual usando el patrón seguro
+            current_name = get_scene_name_safely()
+            print(f"🔍 Debug: Nombre actual obtenido de forma segura: '{current_name}'")
+            
+            # Desactivar el campo de forma segura
+            try:
+                renpy.set_screen_variable("scene_name_active", False)
+                print(f"🔍 Debug: Campo desactivado, scene_name_active = False")
+            except Exception as e:
+                print(f"🔍 Debug: Error desactivando campo: {e}")
+                # Continuar aunque falle la desactivación
+            
+            if current_name and current_name.strip():
+                renpy.notify(f"✅ Nombre guardado: '{current_name.strip()}'")
+                print(f"🔍 Debug: Nombre guardado exitosamente")
+                
+                # Sincronizar variables después de guardar
+                sync_scene_variables()
+            else:
+                renpy.notify("⚠️ Nombre vacío - escribe algo antes de aceptar")
+                print(f"🔍 Debug: Nombre vacío detectado")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error en accept_scene_name: {e}")
+            renpy.notify(create_clear_notification("error", "Error guardando nombre"))
+
+    def add_scene_to_modal():
+        """Agrega una escena a la lista con enfoque híbrido McKee-Rothamel"""
+        
+        print(f"🔍 Debug: Iniciando add_scene_to_modal()")
+        
+        # PLANTEAMIENTO: Verificar el estado del mundo
+        if not is_modal_ready():
+            print(f"🔍 Debug: Modal no está lista")
+            renpy.notify(create_clear_notification("waiting", "El editor se está preparando..."))
+            scene_creation_state.mark_error()
+            return
+        
+        print(f"🔍 Debug: Modal está lista, obteniendo nombre...")
+        
+        # Obtener el nombre de la escena de forma segura
+        scene_name = get_scene_name_safely()
+        print(f"🔍 Debug: Nombre obtenido: '{scene_name}' (tipo: {type(scene_name)})")
+        
+        # CONFLICTO: Validación narrativa
+        print(f"🔍 Debug: Iniciando validación...")
+        is_valid, message = validate_scene_name(scene_name)
+        print(f"🔍 Debug: Resultado validación: {is_valid} - {message}")
+        
+        if not is_valid:
+            print(f"🔍 Debug: Validación falló: {message}")
+            renpy.notify(create_clear_notification("validation", message))
+            return
+        
+        # RESOLUCIÓN: Creación con manejo de errores
+        try:
+            # Obtener la lista actual de escenas
+            created_scenes = get_created_scenes_safely()
+            
+            # Agregar la nueva escena
+            created_scenes.append(scene_name)
+            
+            # Actualizar la lista de forma segura
+            update_created_scenes_safely(created_scenes)
+            
+            # Limpiar el campo de entrada
+            clear_scene_input_safely()
+            
+            # Marcar como exitoso
+            scene_creation_state.mark_ready()
+            
+            # Notificar éxito
+            renpy.notify(create_clear_notification("success", f"Escena '{scene_name}' agregada a la lista"))
+            
+        except Exception as e:
+            # Manejo específico del error "Screen is not showing"
+            if "Screen is not showing" in str(e):
+                renpy.notify(create_clear_notification("conflict", "Error de sincronización - intenta de nuevo"))
+                scene_creation_state.mark_error()
+            else:
+                renpy.notify(create_clear_notification("error", "Error inesperado al crear la escena"))
+                print(f"🔍 Debug: Error completo en add_scene_to_modal: {e}")
+                scene_creation_state.mark_error()
+    
+    def accept_modal_scenes():
+        """Acepta todas las escenas creadas en la modal con enfoque híbrido McKee-Rothamel"""
+        
+        # PLANTEAMIENTO: Verificar qué escenas tenemos
+        created_scenes = get_created_scenes_safely()
+        
+        if not created_scenes:
+            renpy.notify(create_clear_notification("validation", "No hay escenas para guardar"))
+            return
+        
+        # CONFLICTO: Procesar y guardar las escenas
+        try:
             # Obtener las escenas existentes de forma segura
             try:
                 all_scenes = renpy.get_screen_variable("all_scenes")
@@ -6743,12 +7123,15 @@ init python:
                 all_scenes = {}
             
             # Agregar todas las escenas creadas en la modal
+            scenes_added = 0
             for scene_name in created_scenes:
                 if scene_name not in all_scenes:
                     all_scenes[scene_name] = []
+                    scenes_added += 1
             
-            # Guardar las escenas de forma segura
+            # RESOLUCIÓN: Guardar y configurar
             try:
+                # Guardar las escenas de forma segura
                 renpy.set_screen_variable("all_scenes", all_scenes)
             except:
                 # Fallback: usar variable global
@@ -6764,43 +7147,59 @@ init python:
                     renpy.store.current_scene_name_global = created_scenes[0]
                     renpy.store.current_scenes_global = []
             
-            # Ocultar la modal
-            try:
-                renpy.hide_screen("new_scene_modal")
-            except:
-                pass  # Si no se puede ocultar, continuar
-            
-            # Notificar éxito
-            renpy.notify(f"✅ {len(created_scenes)} escena(s) guardada(s) exitosamente")
-            
-        except Exception as e:
-            renpy.notify(f"❌ Error guardando escenas: {e}")
-            print(f"🔍 Debug: Error completo en accept_modal_scenes: {e}")
-    
-    def cancel_modal_scenes():
-        """Cancela la creación de escenas y cierra la modal"""
-        try:
-            # Limpiar todas las variables de la modal de forma segura
-            try:
-                renpy.set_screen_variable("new_scene_name", "")
-                renpy.set_screen_variable("scene_name_active", False)
-                renpy.set_screen_variable("created_scenes_in_modal", [])
-            except:
-                # Fallback: limpiar variables globales
-                if hasattr(renpy.store, 'created_scenes_modal_global'):
-                    renpy.store.created_scenes_modal_global = []
-            
             # Ocultar la modal de forma segura
             try:
                 renpy.hide_screen("new_scene_modal")
             except:
                 pass  # Si no se puede ocultar, continuar
             
-            renpy.notify("❌ Creación de escenas cancelada")
+            # Notificar éxito
+            renpy.notify(create_clear_notification("success", f"{scenes_added} escena(s) guardada(s) exitosamente"))
             
         except Exception as e:
-            renpy.notify(f"❌ Error cancelando: {e}")
-            print(f"🔍 Debug: Error completo en cancel_modal_scenes: {e}")
+            # Manejo específico del error "Screen is not showing"
+            if "Screen is not showing" in str(e):
+                renpy.notify(create_clear_notification("conflict", "Error de sincronización al guardar - intenta de nuevo"))
+                scene_creation_state.mark_error()
+            else:
+                renpy.notify(create_clear_notification("error", "Error inesperado al guardar las escenas"))
+                print(f"🔍 Debug: Error completo en accept_modal_scenes: {e}")
+                scene_creation_state.mark_error()
+    
+    def cancel_modal_scenes():
+        """Cancela la creación de escenas con enfoque híbrido McKee-Rothamel"""
+        
+        # PLANTEAMIENTO: Limpiar el estado
+        try:
+            # Limpiar todas las variables de la modal de forma segura
+            clear_scene_input_safely()
+            
+            # Limpiar la lista de escenas creadas
+            try:
+                renpy.set_screen_variable("created_scenes_in_modal", [])
+            except:
+                # Fallback: limpiar variables globales
+                if hasattr(renpy.store, 'created_scenes_modal_global'):
+                    renpy.store.created_scenes_modal_global = []
+            
+            # CONFLICTO: Ocultar la modal
+            try:
+                renpy.hide_screen("new_scene_modal")
+            except:
+                pass  # Si no se puede ocultar, continuar
+            
+            # RESOLUCIÓN: Notificar cancelación
+            renpy.notify(create_clear_notification("validation", "Creación de escenas cancelada"))
+            
+        except Exception as e:
+            # Manejo específico del error "Screen is not showing"
+            if "Screen is not showing" in str(e):
+                renpy.notify(create_clear_notification("conflict", "Error de sincronización al cancelar - intenta de nuevo"))
+                scene_creation_state.mark_error()
+            else:
+                renpy.notify(create_clear_notification("error", "Error inesperado al cancelar"))
+                print(f"🔍 Debug: Error completo en cancel_modal_scenes: {e}")
+                scene_creation_state.mark_error()
 
     def focus_simple_input():
         """Enfoca el campo de entrada de la ventana modal simple sin reiniciar"""
