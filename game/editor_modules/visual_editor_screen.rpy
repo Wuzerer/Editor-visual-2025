@@ -746,53 +746,63 @@ init python:
                 
                 # Filtrar líneas que no sean comentarios o vacías y convertirlas al formato correcto
                 scene_lines = []
+                in_content_area = False  # Flag para saber si estamos en el área de contenido
+                
                 for line in lines:
                     line = line.strip()
                     if line and not line.startswith('#') and not line.startswith('='):
-                        # Convertir cada línea al formato que espera el sistema
-                        if line.startswith('scene '):
-                            # Es un comando de fondo
-                            scene_lines.append({
-                                'type': 'background',
-                                'background': line.replace('scene ', '').replace(' with dissolve', '').replace(' with fade', ''),
-                                'transition': 'dissolve' if 'with dissolve' in line else 'fade' if 'with fade' in line else 'none'
-                            })
-                        elif line.startswith('show '):
-                            # Es un comando de personaje
-                            parts = line.replace('show ', '').split(' at ')
-                            character = parts[0]
-                            position = parts[1] if len(parts) > 1 else 'center'
-                            scene_lines.append({
-                                'type': 'character',
-                                'character': character,
-                                'position': position,
-                                'expression': 'happy'  # Por defecto
-                            })
-                        elif line.startswith('"') or line.startswith("'"):
-                            # Es diálogo
-                            dialogue = line.strip('"\'')
-                            scene_lines.append({
-                                'type': 'dialogue',
-                                'character': 'Narrator',
-                                'dialogue': dialogue
-                            })
-                        elif ' "' in line or " '" in line:
-                            # Es diálogo con personaje
-                            parts = line.split(' "')
-                            if len(parts) > 1:
-                                character = parts[0].strip()
-                                dialogue = parts[1].rstrip('"')
+                        # Verificar si estamos en el área de contenido (entre label y return)
+                        if line.startswith('label '):
+                            # Inicio de la escena - no incluir en la vista previa
+                            continue
+                        elif line == 'return':
+                            # Fin de la escena - no incluir en la vista previa
+                            break
+                        else:
+                            # Estamos en el área de contenido - procesar la línea
+                            if line.startswith('scene '):
+                                # Es un comando de fondo
+                                scene_lines.append({
+                                    'type': 'background',
+                                    'background': line.replace('scene ', '').replace(' with dissolve', '').replace(' with fade', ''),
+                                    'transition': 'dissolve' if 'with dissolve' in line else 'fade' if 'with fade' in line else 'none'
+                                })
+                            elif line.startswith('show '):
+                                # Es un comando de personaje
+                                parts = line.replace('show ', '').split(' at ')
+                                character = parts[0]
+                                position = parts[1] if len(parts) > 1 else 'center'
+                                scene_lines.append({
+                                    'type': 'character',
+                                    'character': character,
+                                    'position': position,
+                                    'expression': 'happy'  # Por defecto
+                                })
+                            elif line.startswith('"') or line.startswith("'"):
+                                # Es diálogo
+                                dialogue = line.strip('"\'')
                                 scene_lines.append({
                                     'type': 'dialogue',
-                                    'character': character,
+                                    'character': 'Narrator',
                                     'dialogue': dialogue
                                 })
-                        else:
-                            # Otros comandos (label, return, etc.)
-                            scene_lines.append({
-                                'type': 'command',
-                                'command': line
-                            })
+                            elif ' "' in line or " '" in line:
+                                # Es diálogo con personaje
+                                parts = line.split(' "')
+                                if len(parts) > 1:
+                                    character = parts[0].strip()
+                                    dialogue = parts[1].rstrip('"')
+                                    scene_lines.append({
+                                        'type': 'dialogue',
+                                        'character': character,
+                                        'dialogue': dialogue
+                                    })
+                            else:
+                                # Otros comandos (pero no label ni return)
+                                scene_lines.append({
+                                    'type': 'command',
+                                    'command': line
+                                })
                 
                 # Cargar la escena en las variables de la vista previa
                 renpy.store.current_scene_name = scene_name
@@ -842,6 +852,51 @@ init python:
             print(f"🔍 Debug: Error cargando escena para vista previa: {e}")
             renpy.notify(f"❌ Error cargando escena: {e}")
     
+    def convert_scene_item_to_rpy_line(scene_item):
+        """Convierte un diccionario de elemento de escena de vuelta a línea de Ren'Py"""
+        try:
+            if not isinstance(scene_item, dict):
+                return None
+            
+            scene_type = scene_item.get('type', '')
+            
+            if scene_type == 'background':
+                background = scene_item.get('background', '')
+                transition = scene_item.get('transition', 'none')
+                if transition and transition != 'none':
+                    return f"scene {background} with {transition}"
+                else:
+                    return f"scene {background}"
+                    
+            elif scene_type == 'character':
+                character = scene_item.get('character', '')
+                position = scene_item.get('position', 'center')
+                expression = scene_item.get('expression', '')
+                
+                if expression:
+                    return f"show {character} {expression} at {position}"
+                else:
+                    return f"show {character} at {position}"
+                    
+            elif scene_type == 'dialogue':
+                character = scene_item.get('character', 'Narrator')
+                dialogue = scene_item.get('dialogue', '')
+                
+                if character == 'Narrator':
+                    return f'"{dialogue}"'
+                else:
+                    return f'{character} "{dialogue}"'
+                    
+            elif scene_type == 'command':
+                return scene_item.get('command', '')
+                
+            else:
+                return None
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error convirtiendo elemento de escena: {e}")
+            return None
+    
     def save_scene_from_preview():
         """Guarda los cambios realizados en la vista previa"""
         try:
@@ -880,9 +935,14 @@ init python:
                     content_added = True
                 elif content_added and line.strip() == 'return':
                     # Agregar el contenido de la vista previa antes del return
-                    for scene_line in current_scenes:
-                        if scene_line.strip():
-                            new_content_lines.append(f"    {scene_line}")
+                    for scene_item in current_scenes:
+                        if isinstance(scene_item, dict):
+                            # Convertir el diccionario de vuelta a línea de Ren'Py
+                            scene_line = convert_scene_item_to_rpy_line(scene_item)
+                            if scene_line:
+                                new_content_lines.append(f"    {scene_line}")
+                        elif isinstance(scene_item, str) and scene_item.strip():
+                            new_content_lines.append(f"    {scene_item}")
                     new_content_lines.append(line)
                     content_added = False
                 elif not content_added or not line.strip().startswith('    '):
@@ -900,9 +960,14 @@ init python:
                     f"label {scene_name.lower().replace(' ', '_')}:",
                 ]
                 
-                for scene_line in current_scenes:
-                    if scene_line.strip():
-                        new_content_lines.append(f"    {scene_line}")
+                for scene_item in current_scenes:
+                    if isinstance(scene_item, dict):
+                        # Convertir el diccionario de vuelta a línea de Ren'Py
+                        scene_line = convert_scene_item_to_rpy_line(scene_item)
+                        if scene_line:
+                            new_content_lines.append(f"    {scene_line}")
+                    elif isinstance(scene_item, str) and scene_item.strip():
+                        new_content_lines.append(f"    {scene_item}")
                 
                 new_content_lines.append("    return")
             

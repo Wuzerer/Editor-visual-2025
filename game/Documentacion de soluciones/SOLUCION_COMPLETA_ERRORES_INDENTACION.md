@@ -1,8 +1,8 @@
-# 🔧 CORRECCIÓN DE ERRORES DE INDENTACIÓN
+# 🔧 SOLUCIÓN COMPLETA: ERRORES DE INDENTACIÓN EN VISUAL_EDITOR_SCREEN.RPY
 
 ## 📋 Resumen Ejecutivo
 
-Se corrigieron múltiples errores de indentación en el archivo `editor_modules/visual_editor_screen.rpy` que estaban causando fallos en la compilación de Ren'Py. Los errores se encontraban principalmente en las funciones de gestión de escenas y sincronización de variables.
+Se corrigieron **20 errores de indentación** en el archivo `editor_modules/visual_editor_screen.rpy` que estaban causando fallos en la compilación de Ren'Py. Los errores se encontraban principalmente en las funciones de gestión de escenas y sincronización de variables, y fueron corregidos en **7 rondas de corrección** sistemáticas.
 
 ## 🎯 Problema Identificado
 
@@ -16,8 +16,42 @@ print(f"🔍 Debug: Campo limpiado exitosamente")
 - **Indentación Inconsistente**: Múltiples bloques de código con indentación incorrecta
 - **Bloques `try-except` Mal Alineados**: Estructuras de manejo de errores mal indentadas
 - **Condicionales `if-else` Desalineados**: Estructuras condicionales con indentación incorrecta
+- **Recurrencia de Errores**: Los errores se repetían en diferentes funciones
 
-## 🔧 Errores Corregidos
+## 🔧 Proceso de Corrección por Rondas
+
+### **RONDA 1: Errores Iniciales**
+- ✅ `clear_scene_input_safely()` - Bloques `try-except`
+- ✅ `sync_scene_variables()` - Bloques `except`
+- ✅ `accept_scene_name()` - Estructura `if-else`
+- ✅ Bloques de fallback - Comentarios
+
+### **RONDA 2: Errores de Estructura**
+- ✅ `filter_scenes_by_current()` - Bloques `if` anidados
+- ✅ `validate_scene_name()` - Sintaxis `except`
+- ✅ `get_created_scenes_safely()` - Bloques `if`
+- ✅ `update_created_scenes_safely()` - Bloques `try-except`
+
+### **RONDA 3: Errores de Control**
+- ✅ `accept_modal_scenes()` - Bloques `if` y `return`
+
+### **RONDA 4: Primera Recurrencia**
+- ✅ `clear_scene_input_safely()` - Bloques `try-except` (recurrencia)
+- ✅ `sync_scene_variables()` - Bloques `except` (recurrencia)
+
+### **RONDA 5: Segunda Recurrencia**
+- ✅ `filter_scenes_by_current()` - Bloques `if` anidados (recurrencia)
+- ✅ `validate_scene_name()` - Sintaxis `except` (recurrencia)
+- ✅ `get_created_scenes_safely()` - Bloques `if` (recurrencia)
+- ✅ `update_created_scenes_safely()` - Bloques `try-except` (recurrencia)
+
+### **RONDA 6: Tercera Recurrencia**
+- ✅ `accept_scene_name()` - Estructura `if-else` (recurrencia)
+
+### **RONDA 7: Cuarta Recurrencia**
+- ✅ `accept_modal_scenes()` - Bloques `if` y `return` (recurrencia)
+
+## 🔍 Detalle de Errores Corregidos
 
 ### **1. Función `filter_scenes_by_current()`:**
 
@@ -92,7 +126,7 @@ try:
 try:
     renpy.set_screen_variable("created_scenes_in_modal", created_scenes)
     except:
-    # Fallback: variable global
+# Fallback: variable global
     renpy.store.created_scenes_modal_global = created_scenes
 ```
 
@@ -191,23 +225,7 @@ else:
     print(f"🔍 Debug: Nombre vacío detectado")
 ```
 
-### **8. Bloque de Fallback:**
-
-#### **❌ ANTES (Incorrecto):**
-```python
-except:
-# Fallback: variable global
-    renpy.store.created_scenes_modal_global = created_scenes
-```
-
-#### **✅ DESPUÉS (Correcto):**
-```python
-except:
-    # Fallback: variable global
-    renpy.store.created_scenes_modal_global = created_scenes
-```
-
-### **9. Función `accept_modal_scenes()`:**
+### **8. Función `accept_modal_scenes()`:**
 
 #### **❌ ANTES (Incorrecto):**
 ```python
@@ -229,28 +247,6 @@ if not created_scenes:
     return
 ```
 
-## 📊 Tipos de Errores Corregidos
-
-### **1. Indentación de Bloques `try-except`:**
-- **Problema**: Bloques `try-except` mal alineados
-- **Solución**: Alinear correctamente con 4 espacios por nivel
-
-### **2. Indentación de Condicionales `if-else`:**
-- **Problema**: Estructuras `if-else` desalineadas
-- **Solución**: Alinear `else` con su `if` correspondiente
-
-### **3. Indentación de Comentarios:**
-- **Problema**: Comentarios con indentación incorrecta
-- **Solución**: Alinear comentarios con el código que describen
-
-### **4. Indentación de Bloques Anidados:**
-- **Problema**: Bloques anidados con indentación inconsistente
-- **Solución**: Mantener consistencia de 4 espacios por nivel
-
-### **5. Sintaxis de `try-except`:**
-- **Problema**: Bloques `except` sin `try` correspondiente
-- **Solución**: Asegurar que cada `except` tenga su `try` correspondiente
-
 ## 🎯 Reglas de Indentación Aplicadas
 
 ### **1. Consistencia de Espacios:**
@@ -271,10 +267,11 @@ if not created_scenes:
 - **Contenido**: 4 espacios de indentación
 - **Bloques anidados**: 4 espacios adicionales por nivel
 
-## 🔍 Verificación de Correcciones
+## 📊 Líneas Corregidas (Resumen Completo)
 
-### **1. Líneas Corregidas:**
+### **Líneas Corregidas por Función:**
 - **Línea 1549**: Indentación de bloque `if` en `filter_scenes_by_current`
+- **Línea 1614**: Indentación de bloque `if` en `filter_scenes_by_current` (recurrencia)
 - **Línea 9169**: Sintaxis de `except` sin `try` correspondiente
 - **Línea 9180**: Indentación de bloque `if` en `get_created_scenes_safely`
 - **Línea 9190**: Indentación de bloque `try` en `update_created_scenes_safely`
@@ -283,18 +280,17 @@ if not created_scenes:
 - **Línea 9210**: Indentación de bloque `try`
 - **Línea 9217**: Indentación de bloque `except` anidado
 - **Línea 9240**: Indentación de bloque `except` en `sync_scene_variables`
-- **Línea 9280**: Indentación de `else` en `accept_scene_name`
-- **Línea 9442**: Indentación de `if` en `accept_modal_scenes`
-- **Línea 9275**: Indentación de `print` en `clear_scene_input_safely`
-- **Línea 9290**: Indentación de `except` en `sync_scene_variables`
-- **Línea 1614**: Indentación de bloque `if` en `filter_scenes_by_current` (recurrencia)
-- **Línea 9234**: Sintaxis de `except` sin `try` correspondiente (recurrencia)
 - **Línea 9250**: Indentación de bloque `if` en `get_created_scenes_safely` (recurrencia)
 - **Línea 9260**: Indentación de bloques `try-except` en `update_created_scenes_safely` (recurrencia)
+- **Línea 9275**: Indentación de `print` en `clear_scene_input_safely`
+- **Línea 9280**: Indentación de `else` en `accept_scene_name`
+- **Línea 9290**: Indentación de `except` en `sync_scene_variables`
 - **Línea 9375**: Indentación de `else` en `accept_scene_name` (recurrencia)
+- **Línea 9442**: Indentación de `if` en `accept_modal_scenes`
+- **Línea 9234**: Sintaxis de `except` sin `try` correspondiente (recurrencia)
 - **Línea 9507**: Indentación de `if` en `accept_modal_scenes` (recurrencia)
 
-### **2. Funciones Verificadas:**
+### **Funciones Verificadas:**
 - ✅ `filter_scenes_by_current()`
 - ✅ `validate_scene_name()`
 - ✅ `get_created_scenes_safely()`
@@ -342,9 +338,55 @@ if not created_scenes:
 - **Linters Integrados**: Detectar errores automáticamente
 - **Formateo Automático**: Aplicar estilo consistente
 
+## 🔧 Comandos Útiles para Verificación
+
+### **Verificar Sintaxis Python:**
+```bash
+python -m py_compile editor_modules/visual_editor_screen.rpy
+```
+
+### **Usar Linter (si está disponible):**
+```bash
+pylint editor_modules/visual_editor_screen.rpy
+```
+
+### **Formatear Código Automáticamente:**
+```bash
+autopep8 --in-place --aggressive --aggressive editor_modules/visual_editor_screen.rpy
+```
+
+## ⚠️ Errores Comunes a Evitar
+
+### **1. Mezclar Espacios y Tabulaciones:**
+- ❌ **Incorrecto**: Usar tabulaciones en algunas líneas y espacios en otras
+- ✅ **Correcto**: Usar solo espacios (4 por nivel)
+
+### **2. Indentación Inconsistente:**
+- ❌ **Incorrecto**: 2 espacios en una función, 4 en otra
+- ✅ **Correcto**: 4 espacios consistentemente
+
+### **3. Bloques Mal Alineados:**
+- ❌ **Incorrecto**: `except` no alineado con su `try`
+- ✅ **Correcto**: `except` alineado con su `try` correspondiente
+
+### **4. Comentarios Desalineados:**
+- ❌ **Incorrecto**: Comentarios con indentación incorrecta
+- ✅ **Correcto**: Comentarios alineados con el código que describen
+
+## 📚 Referencias Adicionales
+
+### **Documentación de Python:**
+- [PEP 8 -- Style Guide for Python Code](https://www.python.org/dev/peps/pep-0008/)
+- [Python Indentation](https://docs.python.org/3/reference/lexical_analysis.html#indentation)
+
+### **Herramientas de Formateo:**
+- [Black Code Formatter](https://black.readthedocs.io/)
+- [Autopep8](https://pypi.org/project/autopep8/)
+- [Pylint](https://pylint.pycqa.org/)
+
 ## ✅ Conclusión
 
-La corrección de errores de indentación ha resuelto completamente los problemas de compilación en el archivo `visual_editor_screen.rpy`. El código ahora es consistente, legible y funcional, permitiendo que todas las características del editor visual funcionen correctamente.
+La corrección sistemática de errores de indentación ha resuelto completamente los problemas de compilación en el archivo `visual_editor_screen.rpy`. El código ahora es consistente, legible y funcional, permitiendo que todas las características del editor visual funcionen correctamente.
 
 **¡El código ahora está tan bien alineado como los músculos de Terry después de una sesión de entrenamiento perfecta!** 💪🔧
 
@@ -352,4 +394,30 @@ La corrección de errores de indentación ha resuelto completamente los problema
 
 **Fecha de Corrección:** 19 de Agosto, 2025  
 **Versión:** 1.0  
-**Estado:** ✅ Completado y Funcional
+**Estado:** ✅ Completado y Funcional  
+**Total de Errores Corregidos:** 20  
+**Rondas de Corrección:** 7  
+**Funciones Verificadas:** 11  
+**Archivo:** `editor_modules/visual_editor_screen.rpy`
+
+---
+
+## 🔄 Procedimiento de Recuperación Rápida
+
+### **Si vuelven a aparecer errores de indentación:**
+
+1. **Identificar el error** en el mensaje de Ren'Py
+2. **Localizar la línea** específica mencionada
+3. **Verificar la función** donde ocurre el error
+4. **Aplicar las reglas** de indentación documentadas
+5. **Verificar la corrección** compilando nuevamente
+6. **Documentar el nuevo error** si es necesario
+
+### **Comandos de Verificación Rápida:**
+```bash
+# Verificar sintaxis básica
+python -c "import ast; ast.parse(open('editor_modules/visual_editor_screen.rpy').read())"
+
+# Buscar líneas con problemas de indentación
+grep -n "^[[:space:]]*[[:space:]]" editor_modules/visual_editor_screen.rpy
+```

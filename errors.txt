@@ -2,9 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/editor_modules/visual_editor_screen.rpy", line 9442: unexpected indent
+File "game/editor_modules/visual_editor_screen.rpy", line 9507: unexpected indent
     if not created_scenes:
        ^
 
 Ren'Py Version: Ren'Py 8.4.1.25072401
-Tue Aug 19 18:46:54 2025
+Tue Aug 19 19:03:40 2025

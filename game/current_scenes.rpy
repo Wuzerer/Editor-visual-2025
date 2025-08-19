@@ -1,6 +1,6 @@
 # current_scenes.rpy
 # Archivo generado automáticamente por el Editor Visual
-# Generado el: 2025-08-19 18:48:28
+# Generado el: 2025-08-19 19:08:19
 
 # Escena 1: Diálogo
 label scene_1_dialogue:
