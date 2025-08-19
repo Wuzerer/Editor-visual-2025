@@ -65,6 +65,10 @@ init python:
     delete_project_search_text = ""
     available_projects = []
     
+    # Variables para control de limpieza automática
+    project_saved = False
+    scenes_created_since_last_save = []
+    
     # Inicializar editor sin proyecto abierto
     def initialize_editor_without_project():
         """Inicializa el editor sin ningún proyecto abierto"""
@@ -85,6 +89,8 @@ init python:
             renpy.store.current_scene_name = ""
             renpy.store.current_scenes = []
             renpy.store.organizer_scenes_list = []
+            renpy.store.project_saved = False
+            renpy.store.scenes_created_since_last_save = []
             
             # Recargar lista de escenas en el organizador
             load_all_scenes_for_organizer()
@@ -97,20 +103,164 @@ init python:
     # Ejecutar inicialización al cargar el módulo
     initialize_editor_without_project()
     
+    def cleanup_unsaved_scenes():
+        """Limpia las escenas no guardadas cuando se cierra el editor sin guardar proyecto"""
+        try:
+            print(f"🔍 Debug: Iniciando limpieza de escenas no guardadas...")
+            
+            import os
+            
+            # Solo limpiar si no se ha guardado el proyecto
+            if not getattr(renpy.store, 'project_saved', False):
+                current_scenes_dir = os.path.join(config.gamedir, "scenes")
+                if os.path.exists(current_scenes_dir):
+                    scenes_created = getattr(renpy.store, 'scenes_created_since_last_save', [])
+                    
+                    for scene_name in scenes_created:
+                        scene_file = os.path.join(current_scenes_dir, f"{scene_name}.rpy")
+                        scene_compiled = os.path.join(current_scenes_dir, f"{scene_name}.rpyc")
+                        
+                        # Eliminar archivo .rpy
+                        if os.path.exists(scene_file):
+                            os.remove(scene_file)
+                            print(f"🔍 Debug: Escena no guardada eliminada: {scene_name}.rpy")
+                        
+                        # Eliminar archivo .rpyc si existe
+                        if os.path.exists(scene_compiled):
+                            os.remove(scene_compiled)
+                            print(f"🔍 Debug: Archivo compilado eliminado: {scene_name}.rpyc")
+                    
+                    # Limpiar lista de escenas creadas
+                    renpy.store.scenes_created_since_last_save = []
+                    
+                    # Recargar lista de escenas en el organizador
+                    load_all_scenes_for_organizer()
+                    
+                    print(f"🔍 Debug: Limpieza de escenas no guardadas completada")
+                else:
+                    print(f"🔍 Debug: No hay directorio de escenas para limpiar")
+            else:
+                print(f"🔍 Debug: Proyecto guardado, no se requiere limpieza")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error en limpieza de escenas no guardadas: {e}")
+    
+    def mark_scene_as_created(scene_name):
+        """Marca una escena como creada para seguimiento de limpieza"""
+        try:
+            scenes_created = getattr(renpy.store, 'scenes_created_since_last_save', [])
+            if scene_name not in scenes_created:
+                scenes_created.append(scene_name)
+                renpy.store.scenes_created_since_last_save = scenes_created
+                print(f"🔍 Debug: Escena marcada como creada: {scene_name}")
+        except Exception as e:
+            print(f"🔍 Debug: Error marcando escena como creada: {e}")
+    
+    def mark_project_as_saved():
+        """Marca el proyecto como guardado para evitar limpieza automática"""
+        try:
+            renpy.store.project_saved = True
+            renpy.store.scenes_created_since_last_save = []
+            print(f"🔍 Debug: Proyecto marcado como guardado")
+        except Exception as e:
+            print(f"🔍 Debug: Error marcando proyecto como guardado: {e}")
+    
+    def check_unsaved_changes():
+        """Verifica si hay cambios no guardados en el editor"""
+        try:
+            # Verificar si hay escenas creadas sin guardar
+            scenes_created = getattr(renpy.store, 'scenes_created_since_last_save', [])
+            project_saved = getattr(renpy.store, 'project_saved', False)
+            
+            # Si hay escenas creadas y el proyecto no está guardado, hay cambios no guardados
+            has_unsaved_changes = len(scenes_created) > 0 and not project_saved
+            
+            print(f"🔍 Debug: Verificación de cambios no guardados - Escenas: {len(scenes_created)}, Proyecto guardado: {project_saved}, Cambios no guardados: {has_unsaved_changes}")
+            
+            return has_unsaved_changes, scenes_created
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error verificando cambios no guardados: {e}")
+            return False, []
+    
+    def confirm_exit_with_unsaved_changes():
+        """Muestra confirmación de salida con cambios no guardados"""
+        try:
+            print(f"🔍 Debug: Mostrando confirmación de salida con cambios no guardados...")
+            
+            # Ocultar el editor temporalmente
+            renpy.hide_screen("visual_editor")
+            
+            # Mostrar el modal de confirmación
+            renpy.show_screen("confirm_exit_unsaved_modal")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error mostrando confirmación de salida: {e}")
+    
+    def exit_editor_with_cleanup():
+        """Sale del editor con limpieza automática de archivos no guardados"""
+        try:
+            print(f"🔍 Debug: Saliendo del editor con limpieza automática...")
+            
+            # Limpiar escenas no guardadas
+            cleanup_unsaved_scenes()
+            
+            # Salir del editor
+            renpy.hide_screen("visual_editor")
+            
+            # Notificar al usuario
+            renpy.notify("🧹 Editor cerrado - Archivos temporales eliminados")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error saliendo del editor: {e}")
+            # Intentar salir de todas formas
+            renpy.hide_screen("visual_editor")
+    
+    def exit_editor_without_cleanup():
+        """Sale del editor sin limpiar archivos no guardados"""
+        try:
+            print(f"🔍 Debug: Saliendo del editor sin limpieza...")
+            
+            # Salir del editor
+            renpy.hide_screen("visual_editor")
+            
+            # Notificar al usuario
+            renpy.notify("👋 Editor cerrado - Archivos temporales conservados")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error saliendo del editor: {e}")
+            # Intentar salir de todas formas
+            renpy.hide_screen("visual_editor")
+    
+    def smart_exit_editor():
+        """Función inteligente para salir del editor con verificación de cambios"""
+        try:
+            print(f"🔍 Debug: Verificando cambios antes de salir...")
+            
+            # Verificar si hay cambios no guardados
+            has_unsaved_changes, scenes_created = check_unsaved_changes()
+            
+            if has_unsaved_changes:
+                print(f"🔍 Debug: Cambios no guardados detectados, mostrando confirmación...")
+                # Mostrar modal de confirmación
+                confirm_exit_with_unsaved_changes()
+            else:
+                print(f"🔍 Debug: No hay cambios no guardados, cerrando directamente...")
+                # Cerrar directamente
+                renpy.hide_screen("visual_editor")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error en smart_exit_editor: {e}")
+            # En caso de error, intentar cerrar directamente
+            renpy.hide_screen("visual_editor")
+    
     def clear_current_editor():
         """Limpia el editor actual sin abrir modal"""
         try:
             print(f"🔍 Debug: Limpiando editor actual...")
             
-            import os
-            
-            # Limpiar escenas actuales
-            current_scenes_dir = os.path.join(config.gamedir, "scenes")
-            if os.path.exists(current_scenes_dir):
-                for filename in os.listdir(current_scenes_dir):
-                    if filename.endswith('.rpy'):
-                        os.remove(os.path.join(current_scenes_dir, filename))
-                        print(f"🔍 Debug: Escena eliminada: {filename}")
+            # Limpiar escenas no guardadas si no se ha guardado el proyecto
+            cleanup_unsaved_scenes()
             
             # Limpiar variables del editor
             renpy.store.current_scene_name = ""
@@ -1270,6 +1420,9 @@ init python:
             with open(project_info_file, 'w', encoding='utf-8') as f:
                 json.dump(project_info, f, indent=2, ensure_ascii=False)
             
+            # Marcar el proyecto como guardado para evitar limpieza automática
+            mark_project_as_saved()
+            
             # Notificar éxito
             renpy.notify(f"💾 Proyecto guardado: {project_name}")
             print(f"🔍 Debug: Proyecto guardado exitosamente: {project_name}")
@@ -1587,6 +1740,9 @@ init python:
             with open(project_info_file, 'w', encoding='utf-8') as f:
                 json.dump(updated_project_info, f, indent=2, ensure_ascii=False)
             
+            # Marcar el proyecto como guardado para evitar limpieza automática
+            mark_project_as_saved()
+            
             # Notificar éxito
             renpy.notify(f"💾 Proyecto sobrescrito: {original_project_name}")
             print(f"🔍 Debug: Proyecto sobrescrito exitosamente: {original_project_name}")
@@ -1652,7 +1808,7 @@ init python:
                     if scene.get('scene_name') == current_scene_name or 'scene_name' not in scene:
                         # Si no tiene scene_name, asumir que pertenece a la escena actual
                         scene['scene_name'] = current_scene_name
-                        filtered_scenes.append(scene)
+                    filtered_scenes.append(scene)
                 else:
                     # Si no es un diccionario, agregarlo como está (compatibilidad)
                     filtered_scenes.append(scene)
@@ -5188,7 +5344,7 @@ screen visual_editor():
                                     # Panel de Gestión de Proyectos
                                     frame:
                                         xminimum 400
-                                        ysize 300
+                                        ysize 350
                                         background "#8e44ad"
                                         padding (20, 15)
                                         xalign 0.5
@@ -5263,6 +5419,15 @@ screen visual_editor():
                                                         ysize 50
                                                         padding (12, 8)
                                                         background "#95a5a6"
+                                                        xalign 0.5
+                                                        text_style "text_with_outline"
+                                                    
+                                                    textbutton "🗑️ Limpiar No Guardadas":
+                                                        action Function(cleanup_unsaved_scenes)
+                                                        xminimum 120
+                                                        ysize 50
+                                                        padding (12, 8)
+                                                        background "#e67e22"
                                                         xalign 0.5
                                                         text_style "text_with_outline"
                                     
@@ -5540,9 +5705,9 @@ screen visual_editor():
             # if design_mode_active:
             #     use design_overlay
             
-            # Botón de cerrar
+            # Botón de cerrar con verificación de cambios no guardados
             textbutton "❌":
-                action Hide("visual_editor")
+                action Function(smart_exit_editor)
                 xsize 150
                 ysize 40
                 background "#e74c3c"
@@ -9479,6 +9644,9 @@ init python:
             # Actualizar la lista de forma segura
             update_created_scenes_safely(created_scenes)
             
+            # Marcar la escena como creada para seguimiento de limpieza
+            mark_scene_as_created(scene_name)
+            
             # Limpiar el campo de entrada
             clear_scene_input_safely()
             
@@ -9503,7 +9671,7 @@ init python:
         
         # PLANTEAMIENTO: Verificar qué escenas tenemos
         created_scenes = get_created_scenes_safely()
-        
+
         if not created_scenes:
             renpy.notify(create_clear_notification("validation", "No hay escenas para guardar"))
             return

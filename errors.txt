@@ -2,9 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/editor_modules/visual_editor_screen.rpy", line 9507: unexpected indent
-    if not created_scenes:
-       ^
+File "game/editor_modules/visual_editor_screen.rpy", line 5688: The if statement is not a valid child of the textbutton statement.
+    action Function(confirm_exit_with_unsaved_changes) if check_unsaved_changes()[0] else Hide("visual_editor")
+                                                         ^
 
 Ren'Py Version: Ren'Py 8.4.1.25072401
-Tue Aug 19 19:03:40 2025
+Tue Aug 19 19:29:24 2025
