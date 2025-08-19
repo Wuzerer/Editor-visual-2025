@@ -36,10 +36,14 @@ transform enter_from_bottom:
 
 # Asegurar que visual_layout tenga todos los atributos necesarios antes de definir la pantalla
 init python:
+    from datetime import datetime
+    
     # Variables globales para el editor de escenas
     new_scene_name = ""
     scene_name_active = False
     created_scenes_modal_global = []
+    search_text = ""
+    organizer_scenes_list = []
     
     def ensure_visual_layout_attributes():
         """Asegura que visual_layout tenga todos los atributos necesarios para la pantalla"""
@@ -380,29 +384,168 @@ init python:
             renpy.notify(f"❌ Error agregando fondo predeterminado: {e}")
     
     def organize_scenes_by_current():
-        """Organiza la lista de escenas para mostrar solo las de la escena actual"""
+        """Abre la ventana modal para organizar escenas"""
         try:
-            current_scene_name = renpy.get_screen_variable("current_scene_name")
-            if not current_scene_name:
-                # Si no hay escena actual, limpiar la lista
-                renpy.set_screen_variable("current_scenes", [])
-                return
+            print(f"🔍 Debug: Abriendo organizador de escenas...")
             
-            # Obtener todas las escenas
-            all_scenes = get_all_scenes_safe()
+            # Cargar todas las escenas disponibles
+            load_all_scenes_for_organizer()
             
-            # Obtener las escenas de la escena actual
-            if current_scene_name in all_scenes:
-                current_scenes = all_scenes[current_scene_name]
-                renpy.set_screen_variable("current_scenes", current_scenes)
-                renpy.notify(f"📋 Organizando escena: '{current_scene_name}' ({len(current_scenes)} elementos)")
+            # Mostrar la ventana modal
+            renpy.show_screen("organize_scenes_modal")
+            print(f"🔍 Debug: Modal de organizador mostrada")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error abriendo organizador: {e}")
+            renpy.notify(f"❌ Error abriendo organizador de escenas: {e}")
+    
+    def load_all_scenes_for_organizer():
+        """Carga todas las escenas para el organizador"""
+        try:
+            print(f"🔍 Debug: Cargando escenas para organizador...")
+            
+            # Obtener escenas desde el archivo RPY
+            scenes_from_file = get_scenes_from_rpy_file()
+            print(f"🔍 Debug: Escenas cargadas desde archivo: {len(scenes_from_file)}")
+            
+            # Guardar en variable global para el organizador
+            renpy.store.organizer_scenes_list = scenes_from_file
+            print(f"🔍 Debug: Escenas guardadas en organizador")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error cargando escenas: {e}")
+            renpy.store.organizer_scenes_list = []
+    
+    def get_scenes_from_rpy_file():
+        """Obtiene las escenas desde el archivo RPY generado"""
+        try:
+            import os
+            rpy_file = os.path.join(config.gamedir, "current_scenes.rpy")
+            
+            if os.path.exists(rpy_file):
+                with open(rpy_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Parsear el contenido para extraer las escenas
+                scenes = []
+                lines = content.split('\n')
+                current_scene = None
+                
+                for line in lines:
+                    line = line.strip()
+                    if line.startswith('label scene_'):
+                        # Nueva escena encontrada
+                        scene_name = line.split('label ')[1].split(':')[0]
+                        current_scene = {
+                            'name': scene_name,
+                            'type': 'scene',
+                            'content': []
+                        }
+                        scenes.append(current_scene)
+                    elif current_scene and line and not line.startswith('#'):
+                        # Contenido de la escena (solo líneas que no sean comentarios o vacías)
+                        if line and not line.startswith('#') and not line.startswith('='):
+                            current_scene['content'].append(line)
+                
+                print(f"🔍 Debug: {len(scenes)} escenas parseadas del archivo RPY")
+                return scenes
             else:
-                # Si la escena no existe, crear una nueva lista vacía
-                renpy.set_screen_variable("current_scenes", [])
-                renpy.notify(f"📋 Nueva escena creada: '{current_scene_name}'")
+                print(f"🔍 Debug: Archivo RPY no encontrado")
+                return []
                 
         except Exception as e:
-            renpy.notify(f"❌ Error organizando escenas: {e}")
+            print(f"🔍 Debug: Error parseando archivo RPY: {e}")
+            return []
+    
+    def edit_scene_from_organizer(scene_name):
+        """Edita una escena desde el organizador"""
+        try:
+            print(f"🔍 Debug: Editando escena: {scene_name}")
+            
+            # Cerrar la modal del organizador
+            renpy.hide_screen("organize_scenes_modal")
+            
+            # Cargar la escena para edición
+            load_scene_for_editing(scene_name)
+            
+            # Notificar al usuario
+            renpy.notify(f"✏️ Editando escena: {scene_name}")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error editando escena: {e}")
+            renpy.notify(f"❌ Error editando escena: {e}")
+    
+    def load_scene_for_editing(scene_name):
+        """Carga una escena específica para edición"""
+        try:
+            print(f"🔍 Debug: Cargando escena para edición: {scene_name}")
+            
+            # Buscar la escena en la lista del organizador
+            scenes = getattr(renpy.store, 'organizer_scenes_list', [])
+            target_scene = None
+            
+            for scene in scenes:
+                if scene.get('name') == scene_name:
+                    target_scene = scene
+                    break
+            
+            if target_scene:
+                # Cargar la escena en el editor
+                renpy.set_screen_variable("current_scene_name", scene_name)
+                renpy.set_screen_variable("current_scenes", target_scene.get('content', []))
+                print(f"🔍 Debug: Escena cargada exitosamente")
+            else:
+                print(f"🔍 Debug: Escena no encontrada: {scene_name}")
+                renpy.notify(f"⚠️ Escena no encontrada: {scene_name}")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error cargando escena: {e}")
+            renpy.notify(f"❌ Error cargando escena: {e}")
+    
+    def view_scene_from_organizer(scene_name):
+        """Muestra una vista previa de la escena desde el organizador"""
+        try:
+            print(f"🔍 Debug: Vista previa de escena: {scene_name}")
+            
+            # Buscar la escena en la lista del organizador
+            scenes = getattr(renpy.store, 'organizer_scenes_list', [])
+            target_scene = None
+            
+            for scene in scenes:
+                if scene.get('name') == scene_name:
+                    target_scene = scene
+                    break
+            
+            if target_scene:
+                # Mostrar información de la escena
+                content = target_scene.get('content', [])
+                scene_type = target_scene.get('type', 'scene')
+                
+                # Crear mensaje informativo
+                info_message = f"📋 Escena: {scene_name}\n"
+                info_message += f"🎬 Tipo: {scene_type}\n"
+                info_message += f"📊 Elementos: {len(content)}\n\n"
+                
+                if content:
+                    info_message += "📝 Contenido:\n"
+                    for i, line in enumerate(content[:5]):  # Mostrar solo las primeras 5 líneas
+                        info_message += f"  {i+1}. {line}\n"
+                    
+                    if len(content) > 5:
+                        info_message += f"  ... y {len(content) - 5} líneas más"
+                else:
+                    info_message += "📭 Escena vacía"
+                
+                # Mostrar notificación con la información
+                renpy.notify(info_message)
+                print(f"🔍 Debug: Vista previa mostrada para: {scene_name}")
+            else:
+                print(f"🔍 Debug: Escena no encontrada para vista previa: {scene_name}")
+                renpy.notify(f"⚠️ Escena no encontrada: {scene_name}")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error en vista previa: {e}")
+            renpy.notify(f"❌ Error mostrando vista previa: {e}")
     
     def filter_scenes_by_current():
         """Filtra la lista de escenas para mostrar solo las de la escena actual"""
@@ -6767,6 +6910,217 @@ screen new_scene_modal():
                     # Botón cancelar
                     textbutton "❌ Cancelar" action Function(cancel_modal_scenes) background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size 15 xsize 120 ysize 25
 
+# ===== VENTANA MODAL PARA ORGANIZAR ESCENAS =====
+
+screen organize_scenes_modal():
+    modal True
+    
+    # Variables para el organizador
+    default organizer_scenes_list = getattr(renpy.store, 'organizer_scenes_list', [])
+    default selected_scene_index = 0
+    default search_text = ""
+    
+    # Fondo oscuro con efecto de desenfoque
+    frame:
+        xfill True
+        yfill True
+        background "#000000cc"
+        
+        # Ventana modal principal
+        frame:
+            xsize 800
+            ysize 600
+            background "#2c3e50"
+            xalign 0.5
+            yalign 0.5
+            padding (25, 25)
+            
+            vbox:
+                spacing 20
+                xfill True
+                yfill True
+                
+                # Título con icono
+                frame:
+                    xfill True
+                    background "#34495e"
+                    padding (15, 10)
+                    
+                    hbox:
+                        spacing 10
+                        xfill True
+                        
+                        text "📋" size 24
+                        text "Organizador de Escenas" color "#ffffff" size 22 bold True
+                
+                # Barra de búsqueda
+                frame:
+                    xfill True
+                    background "#1a252f"
+                    padding (15, 12)
+                    
+                    vbox:
+                        spacing 8
+                        xfill True
+                        
+                        text "🔍 Buscar escenas:" color "#ecf0f1" size 16
+                        
+                        frame:
+                            xfill True
+                            background "#34495e"
+                            padding (10, 8)
+                            
+                            input:
+                                value FieldInputValue(renpy.store, "search_text")
+                                xfill True
+                                ysize 40
+                                color "#ffffff"
+                                size 16
+                                default "Escribe para buscar escenas..."
+                                length 50
+                
+                # Lista de escenas con scroll
+                frame:
+                    xfill True
+                    yfill True
+                    background "#1a252f"
+                    padding (15, 12)
+                    
+                    vbox:
+                        spacing 10
+                        xfill True
+                        yfill True
+                        
+                        # Encabezado de la lista
+                        frame:
+                            xfill True
+                            background "#34495e"
+                            padding (10, 8)
+                            
+                            hbox:
+                                spacing 10
+                                xfill True
+                                
+                                text "📝 Nombre de Escena" color "#ffffff" size 16 bold True xsize 300
+                                text "🎬 Tipo" color "#ffffff" size 16 bold True xsize 100
+                                text "📊 Elementos" color "#ffffff" size 16 bold True xsize 100
+                                text "⚙️ Acciones" color "#ffffff" size 16 bold True xsize 150
+                        
+                        # Lista de escenas con scroll
+                        viewport:
+                            xfill True
+                            yfill True
+                            scrollbars "vertical"
+                            
+                            vbox:
+                                spacing 5
+                                xfill True
+                                
+                                if organizer_scenes_list:
+                                    for i, scene in enumerate(organizer_scenes_list):
+                                        frame:
+                                            xfill True
+                                            background "#2c3e50"
+                                            padding (10, 8)
+                                            margin (0, 2, 0, 2)
+                                            
+                                            hbox:
+                                                spacing 10
+                                                xfill True
+                                                
+                                                # Nombre de la escena
+                                                frame:
+                                                    xsize 300
+                                                    background "#1a252f"
+                                                    padding (8, 5)
+                                                    
+                                                    text scene.get('name', 'Sin nombre') color "#ffffff" size 14 xalign 0.5
+                                                
+                                                # Tipo de escena
+                                                frame:
+                                                    xsize 100
+                                                    background "#1a252f"
+                                                    padding (8, 5)
+                                                    
+                                                    text scene.get('type', 'scene') color "#bdc3c7" size 12 xalign 0.5
+                                                
+                                                # Número de elementos
+                                                frame:
+                                                    xsize 100
+                                                    background "#1a252f"
+                                                    padding (8, 5)
+                                                    
+                                                    text str(len(scene.get('content', []))) color "#f39c12" size 12 xalign 0.5
+                                                
+                                                # Botones de acción
+                                                frame:
+                                                    xsize 150
+                                                    background "#1a252f"
+                                                    padding (5, 5)
+                                                    
+                                                    hbox:
+                                                        spacing 5
+                                                        xalign 0.5
+                                                        
+                                                        textbutton "✏️ Editar":
+                                                            action Function(edit_scene_from_organizer, scene.get('name', ''))
+                                                            xsize 60
+                                                            ysize 25
+                                                            background "#3498db"
+                                                            text_size 12
+                                                            text_color "#ffffff"
+                                                        
+                                                        textbutton "👁️ Ver":
+                                                            action Function(view_scene_from_organizer, scene.get('name', ''))
+                                                            xsize 50
+                                                            ysize 25
+                                                            background "#27ae60"
+                                                            text_size 12
+                                                            text_color "#ffffff"
+                                else:
+                                    # Mensaje cuando no hay escenas
+                                    frame:
+                                        xfill True
+                                        background "#34495e"
+                                        padding (20, 15)
+                                        
+                                        vbox:
+                                            spacing 10
+                                            xalign 0.5
+                                            yalign 0.5
+                                            
+                                            text "📭 No hay escenas creadas" color "#bdc3c7" size 18 xalign 0.5
+                                            text "Crea algunas escenas primero usando el botón 'Crear Escena'" color "#95a5a6" size 14 xalign 0.5
+                                            text "Las escenas aparecerán aquí automáticamente" color "#7f8c8d" size 12 xalign 0.5
+                
+                # Información y estadísticas
+                frame:
+                    xfill True
+                    background "#34495e"
+                    padding (10, 8)
+                    
+                    hbox:
+                        spacing 20
+                        xfill True
+                        
+                        text f"📊 Total de escenas: {len(organizer_scenes_list)}" color "#ffffff" size 14
+                        text f"🎬 Escenas de diálogo: {sum(1 for s in organizer_scenes_list if 'dialogue' in s.get('name', ''))}" color "#27ae60" size 14
+                        text f"🖼️ Escenas de fondo: {sum(1 for s in organizer_scenes_list if 'background' in s.get('name', ''))}" color "#3498db" size 14
+                
+                # Botones de acción
+                hbox:
+                    spacing 15
+                    xfill True
+                    
+                    # Botón actualizar lista
+                    textbutton "🔄 Actualizar" action Function(load_all_scenes_for_organizer) background "#f39c12" hover_background "#e67e22" text_color "#ffffff" text_hover_color "#ffffff" text_size 15 xsize 120
+                    
+                    # Botón crear nueva escena
+                    textbutton "➕ Nueva Escena" action [Function(renpy.hide_screen, "organize_scenes_modal"), Function(renpy.show_screen, "new_scene_modal")] background "#27ae60" hover_background "#2ecc71" text_color "#ffffff" text_hover_color "#ffffff" text_size 15 xsize 120
+                    
+                    # Botón cerrar
+                    textbutton "❌ Cerrar" action Function(renpy.hide_screen, "organize_scenes_modal") background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size 15 xsize 100
+
 init python:
     # ===== SISTEMA HÍBRIDO MCKEE-ROTHAMEL PARA CREACIÓN DE ESCENAS =====
     
@@ -7072,10 +7426,91 @@ init python:
         
         # RESOLUCIÓN: Creación con manejo de errores
         try:
-            # Obtener la lista actual de escenas
-            created_scenes = get_created_scenes_safely()
+            print(f"🔍 Debug: Guardando escena al archivo RPY...")
+            
+            # Crear la escena para el archivo RPY
+            scene_data = {
+                'type': 'dialogue',
+                'character': 'Narrator',
+                'dialogue': f'Escena creada: {scene_name}',
+                'xalign': 0.5,
+                'yalign': 0.9
+            }
+            
+            # Obtener escenas existentes del archivo RPY
+            existing_scenes = get_scenes_from_rpy_file()
+            print(f"🔍 Debug: Escenas existentes: {len(existing_scenes)}")
             
             # Agregar la nueva escena
+            new_scene = {
+                'name': f'scene_{len(existing_scenes) + 1}_{scene_name.lower().replace(" ", "_")}',
+                'type': 'scene',
+                'content': [
+                    f'# Escena: {scene_name}',
+                    f'label scene_{len(existing_scenes) + 1}_{scene_name.lower().replace(" ", "_")}:',
+                    f'    "Escena creada: {scene_name}"',
+                    '    return'
+                ]
+            }
+            
+            existing_scenes.append(new_scene)
+            print(f"🔍 Debug: Nueva escena agregada: {new_scene["name"]}")
+            
+            # Guardar al archivo RPY usando la función del editor_operations
+            try:
+                from editor_operations import save_scenes_to_file
+                # Convertir el formato para save_scenes_to_file
+                scenes_for_save = []
+                for scene in existing_scenes:
+                    if scene.get('type') == 'scene':
+                        # Crear formato compatible con save_scenes_to_file
+                        scene_for_save = {
+                            'type': 'dialogue',
+                            'character': 'Narrator',
+                            'dialogue': f'Escena: {scene.get("name", "Sin nombre")}',
+                            'xalign': 0.5,
+                            'yalign': 0.9
+                        }
+                        scenes_for_save.append(scene_for_save)
+                
+                success = save_scenes_to_file(scenes_for_save)
+                if success:
+                    print(f"🔍 Debug: Escena guardada exitosamente al archivo RPY")
+                else:
+                    print(f"🔍 Debug: Error guardando al archivo RPY")
+                    
+            except Exception as save_error:
+                print(f"🔍 Debug: Error importando save_scenes_to_file: {save_error}")
+                # Fallback: guardar manualmente
+                try:
+                    import os
+                    rpy_file = os.path.join(config.gamedir, "current_scenes.rpy")
+                    
+                    # Generar contenido RPY
+                    content_lines = [
+                        "# current_scenes.rpy",
+                        "# Archivo generado automáticamente por el Editor Visual",
+                        f"# Generado el: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                        ""
+                    ]
+                    
+                    for scene in existing_scenes:
+                        content_lines.extend(scene.get('content', []))
+                        content_lines.append("")
+                    
+                    # Escribir al archivo
+                    with open(rpy_file, 'w', encoding='utf-8') as f:
+                        f.write('\n'.join(content_lines))
+                    
+                    print(f"🔍 Debug: Escena guardada manualmente al archivo RPY")
+                    
+                except Exception as manual_error:
+                    print(f"🔍 Debug: Error guardando manualmente: {manual_error}")
+            
+            # Obtener la lista actual de escenas para la modal
+            created_scenes = get_created_scenes_safely()
+            
+            # Agregar la nueva escena a la lista de la modal
             created_scenes.append(scene_name)
             
             # Actualizar la lista de forma segura
@@ -7088,7 +7523,7 @@ init python:
             scene_creation_state.mark_ready()
             
             # Notificar éxito
-            renpy.notify(create_clear_notification("success", f"Escena '{scene_name}' agregada a la lista"))
+            renpy.notify(create_clear_notification("success", f"Escena '{scene_name}' creada y guardada"))
             
         except Exception as e:
             # Manejo específico del error "Screen is not showing"
