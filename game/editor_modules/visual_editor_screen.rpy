@@ -62,7 +62,71 @@ init python:
     new_project_name = "Mi Proyecto"
     project_search_text = ""
     overwrite_search_text = ""
+    delete_project_search_text = ""
     available_projects = []
+    
+    # Inicializar editor sin proyecto abierto
+    def initialize_editor_without_project():
+        """Inicializa el editor sin ningún proyecto abierto"""
+        try:
+            print(f"🔍 Debug: Inicializando editor sin proyecto...")
+            
+            import os
+            
+            # Limpiar escenas actuales
+            current_scenes_dir = os.path.join(config.gamedir, "scenes")
+            if os.path.exists(current_scenes_dir):
+                for filename in os.listdir(current_scenes_dir):
+                    if filename.endswith('.rpy'):
+                        os.remove(os.path.join(current_scenes_dir, filename))
+                        print(f"🔍 Debug: Escena eliminada al inicializar: {filename}")
+            
+            # Limpiar variables del editor
+            renpy.store.current_scene_name = ""
+            renpy.store.current_scenes = []
+            renpy.store.organizer_scenes_list = []
+            
+            # Recargar lista de escenas en el organizador
+            load_all_scenes_for_organizer()
+            
+            print(f"🔍 Debug: Editor inicializado sin proyecto")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error inicializando editor: {e}")
+    
+    # Ejecutar inicialización al cargar el módulo
+    initialize_editor_without_project()
+    
+    def clear_current_editor():
+        """Limpia el editor actual sin abrir modal"""
+        try:
+            print(f"🔍 Debug: Limpiando editor actual...")
+            
+            import os
+            
+            # Limpiar escenas actuales
+            current_scenes_dir = os.path.join(config.gamedir, "scenes")
+            if os.path.exists(current_scenes_dir):
+                for filename in os.listdir(current_scenes_dir):
+                    if filename.endswith('.rpy'):
+                        os.remove(os.path.join(current_scenes_dir, filename))
+                        print(f"🔍 Debug: Escena eliminada: {filename}")
+            
+            # Limpiar variables del editor
+            renpy.store.current_scene_name = ""
+            renpy.store.current_scenes = []
+            renpy.store.organizer_scenes_list = []
+            
+            # Recargar lista de escenas en el organizador
+            load_all_scenes_for_organizer()
+            
+            # Notificar éxito
+            renpy.notify("🧹 Editor limpiado")
+            print(f"🔍 Debug: Editor limpiado exitosamente")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error limpiando editor: {e}")
+            renpy.notify(f"❌ Error limpiando editor: {e}")
     
     def ensure_visual_layout_attributes():
         """Asegura que visual_layout tenga todos los atributos necesarios para la pantalla"""
@@ -1289,35 +1353,50 @@ init python:
             renpy.notify(f"❌ Error cargando proyecto: {e}")
     
     def clear_project():
-        """Limpia el proyecto actual"""
+        """Abre el modal para eliminar proyectos completos"""
         try:
-            print(f"🔍 Debug: Limpiando proyecto actual...")
+            print(f"🔍 Debug: Abriendo modal de eliminación de proyectos...")
+            load_projects_list() # Cargar lista de proyectos para seleccionar cuál eliminar
+            renpy.hide_screen("visual_editor") # Ocultar el editor temporalmente
+            renpy.show_screen("delete_project_modal") # Mostrar el modal de eliminación
+        except Exception as e:
+            print(f"🔍 Debug: Error abriendo modal de eliminación: {e}")
+            renpy.notify(f"❌ Error abriendo modal de eliminación: {e}")
+    
+    def execute_delete_project(project_folder):
+        """Ejecuta la eliminación completa de un proyecto"""
+        try:
+            print(f"🔍 Debug: Eliminando proyecto completo: {project_folder}")
             
             import os
+            import shutil
             
-            # Limpiar escenas actuales
-            current_scenes_dir = os.path.join(config.gamedir, "scenes")
-            if os.path.exists(current_scenes_dir):
-                for filename in os.listdir(current_scenes_dir):
-                    if filename.endswith('.rpy'):
-                        os.remove(os.path.join(current_scenes_dir, filename))
-                        print(f"🔍 Debug: Escena eliminada: {filename}")
+            # Ruta del proyecto
+            projects_dir = os.path.join(config.gamedir, "projects")
+            project_path = os.path.join(projects_dir, project_folder)
             
-            # Limpiar variables del editor
-            renpy.store.current_scene_name = ""
-            renpy.store.current_scenes = []
-            renpy.store.organizer_scenes_list = []
+            if not os.path.exists(project_path):
+                renpy.notify(f"⚠️ Proyecto no encontrado: {project_folder}")
+                return
             
-            # Recargar lista de escenas en el organizador
-            load_all_scenes_for_organizer()
+            # Eliminar toda la carpeta del proyecto
+            shutil.rmtree(project_path)
+            print(f"🔍 Debug: Carpeta del proyecto eliminada: {project_path}")
+            
+            # Recargar lista de proyectos
+            load_projects_list()
             
             # Notificar éxito
-            renpy.notify("🗑️ Proyecto limpiado")
-            print(f"🔍 Debug: Proyecto limpiado exitosamente")
+            renpy.notify(f"🗑️ Proyecto eliminado: {project_folder}")
+            print(f"🔍 Debug: Proyecto eliminado exitosamente: {project_folder}")
+            
+            # Volver al editor
+            renpy.hide_screen("delete_project_modal")
+            renpy.show_screen("visual_editor")
             
         except Exception as e:
-            print(f"🔍 Debug: Error limpiando proyecto: {e}")
-            renpy.notify(f"❌ Error limpiando proyecto: {e}")
+            print(f"🔍 Debug: Error eliminando proyecto: {e}")
+            renpy.notify(f"❌ Error eliminando proyecto: {e}")
     
     def fix_duplicate_labels():
         """Arregla conflictos de labels duplicados"""
@@ -5044,7 +5123,7 @@ screen visual_editor():
                                     # Panel de Gestión de Proyectos
                                     frame:
                                         xminimum 400
-                                        ysize 260
+                                        ysize 300
                                         background "#8e44ad"
                                         padding (20, 15)
                                         xalign 0.5
@@ -5095,7 +5174,7 @@ screen visual_editor():
                                                         xalign 0.5
                                                         text_style "text_with_outline"
                                                     
-                                                    textbutton "🗑️ Limpiar":
+                                                    textbutton "🗑️ Eliminar":
                                                         action Function(clear_project)
                                                         xminimum 100
                                                         ysize 50
@@ -5110,6 +5189,15 @@ screen visual_editor():
                                                         ysize 50
                                                         padding (12, 8)
                                                         background "#9b59b6"
+                                                        xalign 0.5
+                                                        text_style "text_with_outline"
+                                                    
+                                                    textbutton "🧹 Limpiar":
+                                                        action Function(clear_current_editor)
+                                                        xminimum 100
+                                                        ysize 50
+                                                        padding (12, 8)
+                                                        background "#95a5a6"
                                                         xalign 0.5
                                                         text_style "text_with_outline"
                                     
@@ -8790,6 +8878,167 @@ screen overwrite_project_modal():
                 
                 # Botón Cancelar
                 textbutton "❌ Cancelar" action [Hide("overwrite_project_modal"), Show("visual_editor")] background "#95a5a6" hover_background "#7f8c8d" text_color "#ffffff" text_hover_color "#ffffff" text_size 14 xsize 100 ysize 35
+
+# ===== PANTALLA DE ELIMINAR PROYECTO COMPLETO =====
+
+screen delete_project_modal():
+    modal True
+    
+    # Fondo semi-transparente
+    frame:
+        xfill True
+        yfill True
+        background "#000000"
+        at transform:
+            alpha 0.7
+    
+    # Modal compacto centrado
+    frame:
+        xsize 600
+        ysize 500
+        xalign 0.5
+        yalign 0.5
+        background "#2c3e50"
+        padding (20, 20)
+        at transform:
+            alpha 1.0
+        
+        vbox:
+            spacing 15
+            xfill True
+            yfill True
+            
+            # Header
+            frame:
+                background "#e74c3c"
+                xfill True
+                padding (15, 10)
+                
+                vbox:
+                    spacing 5
+                    xfill True
+                    
+                    text "🗑️ Eliminar Proyecto Completo" color "#ffffff" size 20 xalign 0.5
+                    text "Selecciona un proyecto para eliminar TODA su carpeta" color "#ecf0f1" size 14 xalign 0.5
+            
+            # Advertencia
+            frame:
+                background "#8b0000"
+                xfill True
+                padding (15, 15)
+                
+                vbox:
+                    spacing 10
+                    xfill True
+                    
+                    text "⚠️ ADVERTENCIA: Esta acción es IRREVERSIBLE" color "#ffffff" size 16 xalign 0.5
+                    text "• Se eliminará TODA la carpeta del proyecto" color "#ffcccc" size 14 xalign 0.5
+                    text "• Se perderán TODOS los archivos y escenas" color "#ffcccc" size 14 xalign 0.5
+                    text "• No se puede recuperar después de eliminar" color "#ffcccc" size 14 xalign 0.5
+            
+            # Lista de proyectos
+            frame:
+                background "#34495e"
+                xfill True
+                yfill True
+                padding (15, 15)
+                
+                vbox:
+                    spacing 10
+                    xfill True
+                    yfill True
+                    
+                    # Barra de búsqueda
+                    frame:
+                        background "#2c3e50"
+                        xfill True
+                        padding (10, 10)
+                        
+                        vbox:
+                            spacing 5
+                            xalign 0.5
+                            
+                            text "🔍 Buscar Proyecto a Eliminar:" color "#e74c3c" size 14 xalign 0.5
+                            
+                            input:
+                                value FieldInputValue(renpy.store, "delete_project_search_text")
+                                xfill True
+                                color "#ffffff"
+                                size 14
+                                default "Buscar proyectos..."
+                    
+                    # Lista de proyectos
+                    frame:
+                        background "#2c3e50"
+                        xfill True
+                        yfill True
+                        padding (10, 10)
+                        
+                        viewport:
+                            scrollbars "vertical"
+                            mousewheel True
+                            
+                            vbox:
+                                spacing 10
+                                xfill True
+                                
+                                python:
+                                    projects = getattr(renpy.store, 'available_projects', [])
+                                    search_text = getattr(renpy.store, 'delete_project_search_text', '').lower()
+                                    
+                                    if search_text:
+                                        filtered_projects = [p for p in projects if search_text in p['name'].lower()]
+                                    else:
+                                        filtered_projects = projects
+                                
+                                if filtered_projects:
+                                    for project in filtered_projects:
+                                        frame:
+                                            background "#34495e"
+                                            xfill True
+                                            padding (15, 15)
+                                            
+                                            vbox:
+                                                spacing 10
+                                                xfill True
+                                                
+                                                # Información del proyecto
+                                                vbox:
+                                                    spacing 5
+                                                    xfill True
+                                                    
+                                                    text f"📁 {project['name']}" color "#ffffff" size 16 xalign 0.0
+                                                    text f"📅 Creado: {project['created_date']}" color "#bdc3c7" size 12 xalign 0.0
+                                                    text f"📊 Escenas: {project['total_scenes']}" color "#27ae60" size 12 xalign 0.0
+                                                    if project['current_scene']:
+                                                        text f"🎭 Escena actual: {project['current_scene']}" color "#3498db" size 12 xalign 0.0
+                                                
+                                                # Botón eliminar
+                                                textbutton "🗑️ ELIMINAR PROYECTO" action [Function(execute_delete_project, project['folder'])] background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size 12 xsize 140 ysize 25
+                                else:
+                                    frame:
+                                        background "#34495e"
+                                        xfill True
+                                        padding (20, 15)
+                                        
+                                        vbox:
+                                            spacing 10
+                                            xalign 0.5
+                                            yalign 0.5
+                                            
+                                            text "📭 No hay proyectos disponibles" color "#bdc3c7" size 16 xalign 0.5
+                                            text "Crea algunos proyectos primero usando 'Guardar Proyecto'" color "#95a5a6" size 12 xalign 0.5
+            
+            # Botones
+            hbox:
+                spacing 15
+                xalign 0.5
+                
+                # Botón Actualizar
+                textbutton "🔄 Actualizar" action Function(load_projects_list) background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size 14 xsize 100 ysize 35
+                
+                # Botón Cancelar
+                textbutton "❌ Cancelar" action [Hide("delete_project_modal"), Show("visual_editor")] background "#95a5a6" hover_background "#7f8c8d" text_color "#ffffff" text_hover_color "#ffffff" text_size 14 xsize 100 ysize 35
 
 init python:
     # ===== SISTEMA HÍBRIDO MCKEE-ROTHAMEL PARA CREACIÓN DE ESCENAS =====

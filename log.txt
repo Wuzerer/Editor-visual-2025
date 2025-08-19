@@ -1,11 +1,11 @@
-2025-08-19 21:12:25 UTC
+2025-08-19 21:20:04 UTC
 Windows-11-10.0.26100-SP0
 Ren'Py 8.4.1.25072401
 
-Early init took 44 ms
+Early init took 46 ms
 Loading error handling took 26 ms
-Loading script took 393 ms
-Loading save slot metadata took 25 ms
+Loading script took 673 ms
+Loading save slot metadata took 24 ms
 Loading persistent took 0 ms
 ⚠️ Layout no disponible desde layout_controller.rpy, creando fallback básico
 ✅ Layout fallback básico creado
@@ -29,6 +29,8 @@ Loading persistent took 0 ms
 ❌ Archivo faltante: visual_editor.rpy
 ⚠️ Editor Visual no encontrado - Botón no se agregará al menú
 💡 Para activar el editor, asegúrate de que todos los archivos estén presentes
+🔍 Debug: Inicializando editor sin proyecto...
+🔍 Debug: Error inicializando editor: name 'load_all_scenes_for_organizer' is not defined
 ⚠️ Agregando atributo faltante a visual_layout: preview_area_x = 0
 ⚠️ Agregando atributo faltante a visual_layout: preview_area_y = 0
 ⚠️ Agregando atributo faltante a visual_layout: scenes_area_x = 820
@@ -59,7 +61,7 @@ Loading persistent took 0 ms
 📝 Contenido del archivo RPY:
 # current_scenes.rpy
 # Archivo generado automáticamente por el Editor Visual
-# Generado el: 2025-08-19 18:12:25
+# Generado el: 2025-08-19 18:20:05
 
 # Escena 1: Diálogo
 label scene_1_dialogue:
@@ -77,28 +79,28 @@ label scene_3_background:
     return
 
 ✅ Editor Operations inicializado con sistema RPY
-Running init code took 68 ms
-Loading analysis data took 11 ms
-Analyze and compile ATL took 2 ms
+Running init code took 67 ms
+Loading analysis data took 7 ms
+Analyze and compile ATL took 1 ms
 Reloading save slot metadata took 4 ms
 Backing up script files to 'C:\\Users\\sebas\\AppData\\Roaming/RenPy/backups\\Editor-visual-2025':
-Dump and make backups took 53 ms
+Dump and make backups took 48 ms
 Cleaning cache took 0 ms
-Making clean stores took 1 ms
-Initial gc took 54 ms
+Making clean stores took 0 ms
+Initial gc took 45 ms
 DPI scale factor: 1.250000
 nvdrs: Loaded, about to disable thread optimizations.
 nvdrs: b"Couldn't load nvlib." (can be ignored)
 Creating interface object took 3 ms
 Init translation took 0 ms
 Cleaning stores took 0 ms
-Load screen analysis took 1 ms
-Analyze screens took 34 ms
-Save screen analysis took 34 ms
-Save pyanalysis took 7 ms
-Save bytecode took 33 ms
-Running _start took 0 ms
-Interface start took 561 ms
+Load screen analysis took 0 ms
+Analyze screens took 21 ms
+Save screen analysis took 33 ms
+Save pyanalysis took 0 ms
+Save bytecode took 0 ms
+Running _start took 2 ms
+Interface start took 594 ms
 
 Initializing gl2 renderer:
 primary display bounds: (0, 0, 1920, 1200)
@@ -112,96 +114,59 @@ Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
 Maximum texture size: 4096x4096
 Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
 Maximum texture size: 4096x4096
-🔍 Debug: Abriendo modal de sobrescribir proyecto...
+🔍 Debug: Abriendo modal de eliminación de proyectos...
 🔍 Debug: Cargando lista de proyectos...
 🔍 Debug: Proyecto encontrado: Mi Proyecto
 🔍 Debug: Proyecto encontrado: Mi Proyecto
 🔍 Debug: 2 proyectos cargados
 ❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
-🔍 Debug: Limpiando proyecto actual...
+🔍 Debug: Eliminando proyecto completo: mi_proyecto_1
+🔍 Debug: Carpeta del proyecto eliminada: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\projects\mi_proyecto_1
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: 1 proyectos cargados
+🔍 Debug: Proyecto eliminado exitosamente: mi_proyecto_1
+Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
+Maximum texture size: 4096x4096
+Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
+Maximum texture size: 4096x4096
+🔍 Debug: Abriendo modal de eliminación de proyectos...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: 1 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Eliminando proyecto completo: mi_proyecto
+🔍 Debug: Carpeta del proyecto eliminada: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\projects\mi_proyecto
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: 0 proyectos cargados
+🔍 Debug: Proyecto eliminado exitosamente: mi_proyecto
+🔍 Debug: Limpiando editor actual...
 🔍 Debug: Cargando escenas para organizador...
 🔍 Debug: 0 escenas cargadas desde carpeta scenes/
 🔍 Debug: Escenas cargadas desde archivo: 0
 🔍 Debug: Escenas guardadas en organizador
-🔍 Debug: Proyecto limpiado exitosamente
-🔍 Debug: Abriendo modal de cargar proyecto...
-🔍 Debug: Cargando lista de proyectos...
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: 2 proyectos cargados
-❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
-🔍 Debug: Abriendo modal de cargar proyecto...
-🔍 Debug: Cargando lista de proyectos...
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: 2 proyectos cargados
-❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
-🔍 Debug: Cargando proyecto: mi_proyecto
-🔍 Debug: Escena copiada: rfds_mi_proyecto.rpy -> rfds_mi.rpy
-🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: Escena cargada: rfds_mi (2 líneas)
-🔍 Debug: 1 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 1
-🔍 Debug: Escenas guardadas en organizador
-🔍 Debug: Proyecto cargado exitosamente: Mi Proyecto
-🔍 Debug: Abriendo organizador de escenas...
-🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: Escena cargada: rfds_mi (2 líneas)
-🔍 Debug: 1 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 1
-🔍 Debug: Escenas guardadas en organizador
-🔍 Debug: Modal de organizador mostrada
-🔍 Debug: Editando escena en Vista Previa: rfds_mi
-🔍 Debug: Cargando escena para Vista Previa: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\scenes\rfds_mi.rpy
-🔍 Debug: Cargando escena para vista previa: rfds_mi
-🔍 Debug: Variables de pantalla sincronizadas: rfds_mi
-🔍 Debug: Escena cargada en vista previa: rfds_mi (2 líneas)
-🔍 Debug: Archivo: rfds_mi.rpy
-🔍 Debug: Contenido de escenas convertido: 2 elementos
-🔍 Debug: Escena 1: {'type': 'command', 'command': 'label rfds_mi_proyecto:'}
-🔍 Debug: Escena 2: {'type': 'command', 'command': 'return'}
-🔍 Debug: Variables globales - current_scene_name: rfds_mi
-🔍 Debug: Variables globales - current_scenes: 2 líneas
-🔍 Debug: Error obteniendo variables de pantalla: list index out of range
-🔍 Debug: Abriendo organizador de escenas...
-🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: Escena cargada: rfds_mi (2 líneas)
-🔍 Debug: 1 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 1
-🔍 Debug: Escenas guardadas en organizador
-🔍 Debug: Modal de organizador mostrada
-🔍 Debug: Abriendo modal de sobrescribir proyecto...
-🔍 Debug: Cargando lista de proyectos...
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: 2 proyectos cargados
-❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
-🔍 Debug: Sobrescribiendo proyecto: mi_proyecto
-🔍 Debug: Escena eliminada del proyecto: rfds_mi_proyecto.rpy
-🔍 Debug: Escena copiada al proyecto con nombre único: rfds_mi_mi_proyecto.rpy
-🔍 Debug: Proyecto sobrescrito exitosamente: Mi Proyecto
-🔍 Debug: Abriendo modal de cargar proyecto...
-🔍 Debug: Cargando lista de proyectos...
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: 2 proyectos cargados
-❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
-🔍 Debug: Abriendo modal de cargar proyecto...
-🔍 Debug: Cargando lista de proyectos...
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: Proyecto encontrado: Mi Proyecto
-🔍 Debug: 2 proyectos cargados
-❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
-🔍 Debug: Limpiando proyecto actual...
-🔍 Debug: Escena eliminada: rfds_mi.rpy
-🔍 Debug: Cargando escenas para organizador...
-🔍 Debug: 0 escenas cargadas desde carpeta scenes/
-🔍 Debug: Escenas cargadas desde archivo: 0
-🔍 Debug: Escenas guardadas en organizador
-🔍 Debug: Proyecto limpiado exitosamente
+🔍 Debug: Editor limpiado exitosamente
 🔍 Debug: Arreglando conflictos de labels duplicados...
 🔍 Debug: Cargando escenas para organizador...
 🔍 Debug: 0 escenas cargadas desde carpeta scenes/
 🔍 Debug: Escenas cargadas desde archivo: 0
 🔍 Debug: Escenas guardadas en organizador
 🔍 Debug: Conflictos de labels arreglados exitosamente
+🔍 Debug: Abriendo modal de cargar proyecto...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: 1 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Abriendo modal de eliminación de proyectos...
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: Proyecto encontrado: Mi Proyecto
+🔍 Debug: 1 proyectos cargados
+❌ Error obteniendo sprites: 'NoneType' object has no attribute 'lower'
+🔍 Debug: Eliminando proyecto completo: mi_proyecto
+🔍 Debug: Carpeta del proyecto eliminada: C:\Users\sebas\Documents\GitHub\Editor-visual-2025\game\projects\mi_proyecto
+🔍 Debug: Cargando lista de proyectos...
+🔍 Debug: 0 proyectos cargados
+🔍 Debug: Proyecto eliminado exitosamente: mi_proyecto
+Screen sizes: virtual=(1920, 1080) physical=(1920, 1111) drawable=(1920, 1111)
+Maximum texture size: 4096x4096
