@@ -2,9 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/editor_modules/visual_editor_screen.rpy", line 7020: The if statement is not a valid child of the frame statement.
+File "game/editor_modules/visual_editor_screen.rpy", line 7377: The if statement is not a valid child of the frame statement.
     background "#2c3e50" if i % 2 == 0 else "#34495e"
                            ^
 
 Ren'Py Version: Ren'Py 8.4.1.25072401
-Tue Aug 19 16:21:43 2025
+Tue Aug 19 16:45:35 2025

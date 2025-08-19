@@ -45,6 +45,16 @@ init python:
     search_text = ""
     organizer_scenes_list = []
     
+    # Variables para el editor integrado
+    current_editing_scene = None
+    editor_lines = []
+    current_line_index = 0
+    editor_text = ""
+    
+    # Variables para la vista previa de escenas
+    current_scene_name = ""
+    current_scenes = []
+    
     def ensure_visual_layout_attributes():
         """Asegura que visual_layout tenga todos los atributos necesarios para la pantalla"""
         try:
@@ -473,9 +483,9 @@ init python:
             return []
     
     def edit_scene_from_organizer(scene_name):
-        """Edita una escena desde el organizador"""
+        """Edita una escena desde el organizador en la Vista Previa"""
         try:
-            print(f"🔍 Debug: Editando escena: {scene_name}")
+            print(f"🔍 Debug: Editando escena en Vista Previa: {scene_name}")
             
             # Buscar la escena en la lista del organizador
             scenes = getattr(renpy.store, 'organizer_scenes_list', [])
@@ -487,42 +497,26 @@ init python:
                     break
             
             if target_scene:
-                # Obtener la ruta del archivo
+                # Obtener la ruta del archivo y contenido
                 filepath = target_scene.get('filepath', '')
                 filename = target_scene.get('filename', '')
+                content = target_scene.get('content', [])
                 
                 if filepath:
-                    print(f"🔍 Debug: Abriendo archivo para edición: {filepath}")
+                    print(f"🔍 Debug: Cargando escena para Vista Previa: {filepath}")
                     
                     # Cerrar la modal del organizador
                     renpy.hide_screen("organize_scenes_modal")
                     
+                    # Cargar el contenido de la escena para la vista previa
+                    load_scene_for_preview_editing(scene_name, filepath, content)
+                    
+                    # Mostrar la pantalla principal del editor visual
+                    renpy.show_screen("visual_editor")
+                    
                     # Notificar al usuario
-                    renpy.notify(f"✏️ Editando escena: {scene_name} ({filename})")
+                    renpy.notify(f"🎬 Editando escena: {scene_name} en Vista Previa")
                     
-                    # Aquí podrías abrir el archivo en un editor externo o en una ventana de edición
-                    # Por ahora, solo notificamos que el archivo está listo para editar
-                    print(f"🔍 Debug: Archivo listo para edición: {filepath}")
-                    
-                    # Opcional: Abrir el archivo en el editor del sistema
-                    try:
-                        import os
-                        import subprocess
-                        import platform
-                        
-                        system = platform.system()
-                        if system == "Windows":
-                            os.startfile(filepath)
-                        elif system == "Darwin":  # macOS
-                            subprocess.run(["open", filepath])
-                        else:  # Linux
-                            subprocess.run(["xdg-open", filepath])
-                        
-                        print(f"🔍 Debug: Archivo abierto en editor del sistema")
-                        
-                    except Exception as open_error:
-                        print(f"🔍 Debug: Error abriendo archivo en editor: {open_error}")
-                        renpy.notify(f"📝 Archivo listo para editar: {filename}")
                 else:
                     print(f"🔍 Debug: No se encontró ruta del archivo para: {scene_name}")
                     renpy.notify(f"⚠️ No se encontró archivo para editar: {scene_name}")
@@ -533,6 +527,108 @@ init python:
         except Exception as e:
             print(f"🔍 Debug: Error editando escena: {e}")
             renpy.notify(f"❌ Error editando escena: {e}")
+    
+    def load_scene_content_for_editing(scene_name, filepath, content):
+        """Carga el contenido de una escena para edición"""
+        try:
+            print(f"🔍 Debug: Cargando contenido para edición: {scene_name}")
+            
+            # Leer el contenido completo del archivo
+            import os
+            if os.path.exists(filepath):
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    full_content = f.read()
+                
+                # Guardar información de la escena en edición
+                renpy.store.current_editing_scene = {
+                    'name': scene_name,
+                    'filepath': filepath,
+                    'filename': os.path.basename(filepath),
+                    'content': full_content,
+                    'original_content': full_content
+                }
+                
+                # Convertir el contenido a líneas para el editor
+                lines = full_content.split('\n')
+                renpy.store.editor_lines = lines
+                renpy.store.current_line_index = 0
+                
+                # Crear variables dinámicas para cada línea del editor
+                for i, line in enumerate(lines):
+                    setattr(renpy.store, f'editor_line_{i}', line)
+                
+                print(f"🔍 Debug: Contenido cargado: {len(lines)} líneas")
+                print(f"🔍 Debug: Variables de líneas creadas: editor_line_0 a editor_line_{len(lines)-1}")
+                renpy.notify(f"📝 Contenido cargado: {len(lines)} líneas")
+                
+            else:
+                print(f"🔍 Debug: Archivo no encontrado: {filepath}")
+                renpy.notify(f"⚠️ Archivo no encontrado: {os.path.basename(filepath)}")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error cargando contenido: {e}")
+            renpy.notify(f"❌ Error cargando contenido: {e}")
+    
+    def save_scene_edits():
+        """Guarda los cambios realizados en la escena"""
+        try:
+            current_scene = getattr(renpy.store, 'current_editing_scene', None)
+            if not current_scene:
+                print(f"🔍 Debug: No hay escena en edición")
+                renpy.notify(f"⚠️ No hay escena en edición")
+                return
+            
+            filepath = current_scene.get('filepath', '')
+            if not filepath:
+                print(f"🔍 Debug: No hay ruta de archivo para guardar")
+                renpy.notify(f"⚠️ No hay ruta de archivo para guardar")
+                return
+            
+            # Recolectar todas las líneas del editor
+            lines = getattr(renpy.store, 'editor_lines', [])
+            updated_lines = []
+            
+            for i in range(len(lines)):
+                line_value = getattr(renpy.store, f'editor_line_{i}', '')
+                updated_lines.append(line_value)
+            
+            # Crear el contenido actualizado
+            current_content = '\n'.join(updated_lines)
+            
+            # Guardar el archivo
+            import os
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(current_content)
+            
+            # Actualizar la información de la escena
+            current_scene['content'] = current_content
+            renpy.store.editor_lines = updated_lines
+            
+            print(f"🔍 Debug: Escena guardada exitosamente: {filepath}")
+            print(f"🔍 Debug: {len(updated_lines)} líneas guardadas")
+            renpy.notify(f"💾 Escena guardada: {current_scene.get('filename', '')}")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error guardando escena: {e}")
+            renpy.notify(f"❌ Error guardando escena: {e}")
+    
+    def cancel_scene_edits():
+        """Cancela la edición sin guardar cambios"""
+        try:
+            current_scene = getattr(renpy.store, 'current_editing_scene', None)
+            if current_scene:
+                scene_name = current_scene.get('name', 'Escena')
+                print(f"🔍 Debug: Edición cancelada para: {scene_name}")
+                renpy.notify(f"❌ Edición cancelada: {scene_name}")
+            
+            # Limpiar variables de edición
+            renpy.store.current_editing_scene = None
+            renpy.store.editor_lines = []
+            renpy.store.current_line_index = 0
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error cancelando edición: {e}")
+            renpy.notify(f"❌ Error cancelando edición: {e}")
     
     def load_scene_for_editing(scene_name):
         """Carga una escena específica para edición"""
@@ -560,6 +656,198 @@ init python:
         except Exception as e:
             print(f"🔍 Debug: Error cargando escena: {e}")
             renpy.notify(f"❌ Error cargando escena: {e}")
+    
+    def load_scene_for_preview_editing(scene_name, filepath, content):
+        """Carga una escena para edición en la vista previa"""
+        try:
+            print(f"🔍 Debug: Cargando escena para vista previa: {scene_name}")
+            
+            # Leer el contenido completo del archivo
+            import os
+            if os.path.exists(filepath):
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    full_content = f.read()
+                
+                # Convertir el contenido a líneas para la vista previa
+                lines = full_content.split('\n')
+                
+                # Filtrar líneas que no sean comentarios o vacías y convertirlas al formato correcto
+                scene_lines = []
+                for line in lines:
+                    line = line.strip()
+                    if line and not line.startswith('#') and not line.startswith('='):
+                        # Convertir cada línea al formato que espera el sistema
+                        if line.startswith('scene '):
+                            # Es un comando de fondo
+                            scene_lines.append({
+                                'type': 'background',
+                                'background': line.replace('scene ', '').replace(' with dissolve', '').replace(' with fade', ''),
+                                'transition': 'dissolve' if 'with dissolve' in line else 'fade' if 'with fade' in line else 'none'
+                            })
+                        elif line.startswith('show '):
+                            # Es un comando de personaje
+                            parts = line.replace('show ', '').split(' at ')
+                            character = parts[0]
+                            position = parts[1] if len(parts) > 1 else 'center'
+                            scene_lines.append({
+                                'type': 'character',
+                                'character': character,
+                                'position': position,
+                                'expression': 'happy'  # Por defecto
+                            })
+                        elif line.startswith('"') or line.startswith("'"):
+                            # Es diálogo
+                            dialogue = line.strip('"\'')
+                            scene_lines.append({
+                                'type': 'dialogue',
+                                'character': 'Narrator',
+                                'dialogue': dialogue
+                            })
+                        elif ' "' in line or " '" in line:
+                            # Es diálogo con personaje
+                            parts = line.split(' "')
+                            if len(parts) > 1:
+                                character = parts[0].strip()
+                                dialogue = parts[1].rstrip('"')
+                                scene_lines.append({
+                                    'type': 'dialogue',
+                                    'character': character,
+                                    'dialogue': dialogue
+                                })
+                        else:
+                            # Otros comandos (label, return, etc.)
+                            scene_lines.append({
+                                'type': 'command',
+                                'command': line
+                            })
+                
+                # Cargar la escena en las variables de la vista previa
+                renpy.store.current_scene_name = scene_name
+                renpy.store.current_scenes = scene_lines
+                
+                # Sincronizar con variables de pantalla para la vista previa
+                try:
+                    renpy.set_screen_variable("current_scene_name", scene_name)
+                    renpy.set_screen_variable("current_scenes", scene_lines)
+                    print(f"🔍 Debug: Variables de pantalla sincronizadas: {scene_name}")
+                except Exception as sync_error:
+                    print(f"🔍 Debug: Error sincronizando variables de pantalla: {sync_error}")
+                
+                # Guardar información adicional para edición
+                renpy.store.current_editing_scene = {
+                    'name': scene_name,
+                    'filepath': filepath,
+                    'filename': os.path.basename(filepath),
+                    'content': full_content,
+                    'original_content': full_content
+                }
+                
+                print(f"🔍 Debug: Escena cargada en vista previa: {scene_name} ({len(scene_lines)} líneas)")
+                print(f"🔍 Debug: Archivo: {os.path.basename(filepath)}")
+                print(f"🔍 Debug: Contenido de escenas convertido: {len(scene_lines)} elementos")
+                for i, scene in enumerate(scene_lines):
+                    print(f"🔍 Debug: Escena {i+1}: {scene}")
+                print(f"🔍 Debug: Variables globales - current_scene_name: {getattr(renpy.store, 'current_scene_name', 'NO ENCONTRADO')}")
+                print(f"🔍 Debug: Variables globales - current_scenes: {len(getattr(renpy.store, 'current_scenes', []))} líneas")
+                
+                # Debug adicional para verificar que las variables se cargan en la pantalla
+                try:
+                    screen_scenes = renpy.get_screen_variable("current_scenes", [])
+                    screen_name = renpy.get_screen_variable("current_scene_name", "")
+                    print(f"🔍 Debug: Variables de pantalla - current_scene_name: {screen_name}")
+                    print(f"🔍 Debug: Variables de pantalla - current_scenes: {len(screen_scenes)} líneas")
+                except Exception as screen_error:
+                    print(f"🔍 Debug: Error obteniendo variables de pantalla: {screen_error}")
+                
+                renpy.notify(f"🎬 Escena cargada en vista previa: {scene_name}")
+                
+            else:
+                print(f"🔍 Debug: Archivo no encontrado: {filepath}")
+                renpy.notify(f"⚠️ Archivo no encontrado: {os.path.basename(filepath)}")
+                
+        except Exception as e:
+            print(f"🔍 Debug: Error cargando escena para vista previa: {e}")
+            renpy.notify(f"❌ Error cargando escena: {e}")
+    
+    def save_scene_from_preview():
+        """Guarda los cambios realizados en la vista previa"""
+        try:
+            current_scene = getattr(renpy.store, 'current_editing_scene', None)
+            if not current_scene:
+                print(f"🔍 Debug: No hay escena en edición")
+                renpy.notify(f"⚠️ No hay escena en edición")
+                return
+            
+            filepath = current_scene.get('filepath', '')
+            if not filepath:
+                print(f"🔍 Debug: No hay ruta de archivo para guardar")
+                renpy.notify(f"⚠️ No hay ruta de archivo para guardar")
+                return
+            
+            # Obtener el contenido actual de la vista previa
+            current_scenes = getattr(renpy.store, 'current_scenes', [])
+            scene_name = getattr(renpy.store, 'current_scene_name', 'Escena')
+            
+            # Reconstruir el contenido del archivo
+            import os
+            from datetime import datetime
+            
+            # Leer el contenido original para mantener comentarios y estructura
+            original_content = current_scene.get('original_content', '')
+            original_lines = original_content.split('\n')
+            
+            # Crear nuevo contenido manteniendo comentarios y estructura
+            new_content_lines = []
+            content_added = False
+            
+            for line in original_lines:
+                if line.strip().startswith('label ') and scene_name in line:
+                    # Encontrar el label de la escena
+                    new_content_lines.append(line)
+                    content_added = True
+                elif content_added and line.strip() == 'return':
+                    # Agregar el contenido de la vista previa antes del return
+                    for scene_line in current_scenes:
+                        if scene_line.strip():
+                            new_content_lines.append(f"    {scene_line}")
+                    new_content_lines.append(line)
+                    content_added = False
+                elif not content_added or not line.strip().startswith('    '):
+                    # Mantener comentarios y estructura
+                    new_content_lines.append(line)
+            
+            # Si no se encontró el label, crear contenido básico
+            if not content_added:
+                new_content_lines = [
+                    f"# {scene_name}.rpy",
+                    f"# Escena editada automáticamente por el Editor Visual",
+                    f"# Actualizado el: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                    "",
+                    f"# Escena: {scene_name}",
+                    f"label {scene_name.lower().replace(' ', '_')}:",
+                ]
+                
+                for scene_line in current_scenes:
+                    if scene_line.strip():
+                        new_content_lines.append(f"    {scene_line}")
+                
+                new_content_lines.append("    return")
+            
+            # Guardar el archivo
+            new_content = '\n'.join(new_content_lines)
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            
+            # Actualizar la información de la escena
+            current_scene['content'] = new_content
+            
+            print(f"🔍 Debug: Escena guardada desde vista previa: {filepath}")
+            print(f"🔍 Debug: {len(current_scenes)} líneas guardadas")
+            renpy.notify(f"💾 Escena guardada: {current_scene.get('filename', '')}")
+            
+        except Exception as e:
+            print(f"🔍 Debug: Error guardando escena desde vista previa: {e}")
+            renpy.notify(f"❌ Error guardando escena: {e}")
     
     def view_scene_from_organizer(scene_name):
         """Muestra una vista previa de la escena desde el organizador"""
@@ -620,9 +908,14 @@ init python:
             # Filtrar solo las escenas que pertenecen a la escena actual
             filtered_scenes = []
             for scene in current_scenes:
-                if scene.get('scene_name') == current_scene_name or 'scene_name' not in scene:
-                    # Si no tiene scene_name, asumir que pertenece a la escena actual
-                    scene['scene_name'] = current_scene_name
+                # Verificar si la escena es un diccionario válido
+                if isinstance(scene, dict):
+                    if scene.get('scene_name') == current_scene_name or 'scene_name' not in scene:
+                        # Si no tiene scene_name, asumir que pertenece a la escena actual
+                        scene['scene_name'] = current_scene_name
+                        filtered_scenes.append(scene)
+                else:
+                    # Si no es un diccionario, agregarlo como está (compatibilidad)
                     filtered_scenes.append(scene)
             
             return filtered_scenes
@@ -663,10 +956,10 @@ screen visual_editor():
     default selected_char_sprite = None
     default pos_to_add = "center"
     default dialogue_text = ""
-    default current_scenes = []
+    default current_scenes = getattr(renpy.store, 'current_scenes', [])
     # Variables para gestión de escenas múltiples
     default all_scenes = {}  # Diccionario de todas las escenas {nombre: escenas}
-    default current_scene_name = ""  # Nombre de la escena actual
+    default current_scene_name = getattr(renpy.store, 'current_scene_name', "")  # Nombre de la escena actual
     default scene_creation_mode = False  # Modo de creación de escena
     default new_scene_name = ""  # Nombre para nueva escena
     default new_scene_name_active = False  # Control para activar edición del nombre
@@ -3296,6 +3589,15 @@ screen visual_editor():
                                                         ysize 50
                                                         padding (12, 8)
                                                         background "#8e44ad"
+                                                        xalign 0.5
+                                                        text_style "text_with_outline"
+                                                    
+                                                    textbutton "💾 Guardar Escena":
+                                                        action Function(save_scene_from_preview)
+                                                        xminimum 140
+                                                        ysize 50
+                                                        padding (12, 8)
+                                                        background "#27ae60"
                                                         xalign 0.5
                                                         text_style "text_with_outline"
                                                 
@@ -7179,6 +7481,158 @@ screen organize_scenes_modal():
                     
                     # Botón cerrar
                     textbutton "❌ Cerrar" action Function(renpy.hide_screen, "organize_scenes_modal") background "#e74c3c" hover_background "#c0392b" text_color "#ffffff" text_hover_color "#ffffff" text_size 15 xsize 100
+
+# ===== PANTALLA DEL EDITOR INTEGRADO =====
+
+screen scene_editor_modal():
+    modal True
+    
+    # Variables para el editor
+    default current_scene = getattr(renpy.store, 'current_editing_scene', None)
+    default scene_name = current_scene.get('name', 'Escena') if current_scene else 'Escena'
+    default filename = current_scene.get('filename', '') if current_scene else ''
+    
+    # Fondo principal
+    frame:
+        style_prefix "modal"
+        xfill True
+        yfill True
+        background "#1a1a1a"
+        
+        vbox:
+            spacing 20
+            xfill True
+            yfill True
+            
+            # Header del editor
+            frame:
+                background "#2c3e50"
+                xfill True
+                padding (20, 15)
+                
+                hbox:
+                    spacing 20
+                    xfill True
+                    
+                    # Información de la escena
+                    vbox:
+                        spacing 5
+                        xfill True
+                        
+                        text "✏️ Editor de Escena" color "#ecf0f1" size 24 xalign 0.0
+                        text f"Archivo: {filename}" color "#bdc3c7" size 14 xalign 0.0
+                        text f"Escena: {scene_name}" color "#bdc3c7" size 14 xalign 0.0
+                    
+                    # Botones de acción
+                    vbox:
+                        spacing 10
+                        xalign 1.0
+                        
+                        textbutton "💾 Guardar" action Function(save_scene_edits) background "#27ae60" hover_background "#2ecc71"
+                        textbutton "❌ Cancelar" action [Function(cancel_scene_edits), Hide("scene_editor_modal")] background "#e74c3c" hover_background "#c0392b"
+            
+            # Área de edición principal
+            frame:
+                background "#2c3e50"
+                xfill True
+                yfill True
+                padding (20, 20)
+                
+                vbox:
+                    spacing 15
+                    xfill True
+                    yfill True
+                    
+                    # Barra de herramientas del editor
+                    frame:
+                        background "#34495e"
+                        xfill True
+                        padding (15, 10)
+                        
+                        hbox:
+                            spacing 15
+                            xfill True
+                            
+                            textbutton "📝 Nueva Línea" action NullAction() background "#3498db" hover_background "#2980b9"
+                            textbutton "🗑️ Eliminar Línea" action NullAction() background "#e67e22" hover_background "#d35400"
+                            textbutton "📋 Copiar" action NullAction() background "#9b59b6" hover_background "#8e44ad"
+                            textbutton "📋 Pegar" action NullAction() background "#9b59b6" hover_background "#8e44ad"
+                    
+                    # Editor de texto principal
+                    frame:
+                        background "#34495e"
+                        xfill True
+                        yfill True
+                        padding (15, 15)
+                        
+                        vbox:
+                            spacing 10
+                            xfill True
+                            yfill True
+                            
+                            # Área de texto editable
+                            viewport:
+                                scrollbars "vertical"
+                                mousewheel True
+                                xfill True
+                                yfill True
+                                
+                                vbox:
+                                    spacing 5
+                                    xfill True
+                                    
+                                    # Mostrar líneas del editor
+                                    for i, line in enumerate(getattr(renpy.store, 'editor_lines', [])):
+                                        frame:
+                                            background "#2c3e50"
+                                            xfill True
+                                            padding (10, 5)
+                                            
+                                            hbox:
+                                                spacing 10
+                                                xfill True
+                                                
+                                                # Número de línea
+                                                text f"{i+1:3d}" color "#7f8c8d" size 12 xalign 0.0
+                                                
+                                                # Contenido de la línea (editable)
+                                                input:
+                                                    value FieldInputValue(renpy.store, f"editor_line_{i}")
+                                                    default line
+                                                    xfill True
+                                                    color "#ecf0f1"
+                                                    size 14
+                                                    style_prefix "editor_input"
+                    
+                    # Barra de estado
+                    frame:
+                        background "#34495e"
+                        xfill True
+                        padding (15, 10)
+                        
+                        hbox:
+                            spacing 20
+                            xfill True
+                            
+                            text f"Líneas: {len(getattr(renpy.store, 'editor_lines', []))}" color "#bdc3c7" size 12
+                            text f"Línea actual: {getattr(renpy.store, 'current_line_index', 0) + 1}" color "#bdc3c7" size 12
+                            text f"Archivo: {filename}" color "#bdc3c7" size 12
+                            
+                            # Indicador de cambios
+                            text "💾 Guardado" color "#27ae60" size 12 xalign 1.0
+            
+            # Botones de navegación
+            frame:
+                background "#2c3e50"
+                xfill True
+                padding (20, 15)
+                
+                hbox:
+                    spacing 20
+                    xalign 0.5
+                    
+                    textbutton "⬅️ Volver al Organizador" action [Hide("scene_editor_modal"), Show("organize_scenes_modal")] background "#3498db" hover_background "#2980b9"
+                    textbutton "🏠 Volver al Editor" action [Hide("scene_editor_modal"), Show("visual_editor_screen")] background "#9b59b6" hover_background "#8e44ad"
 
 init python:
     # ===== SISTEMA HÍBRIDO MCKEE-ROTHAMEL PARA CREACIÓN DE ESCENAS =====
